@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BookingRouteImport } from './routes/booking'
+import { Route as LookupRouteImport } from './routes/lookup'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as StaffRouteImport } from './routes/staff'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const BookingRoute = BookingRouteImport.update({
   id: '/booking',
   path: '/booking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LookupRoute = LookupRouteImport.update({
+  id: '/lookup',
+  path: '/lookup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesRoute = ServicesRouteImport.update({
@@ -38,12 +44,14 @@ const StaffRoute = StaffRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/lookup': typeof LookupRoute
   '/services': typeof ServicesRoute
   '/staff': typeof StaffRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/lookup': typeof LookupRoute
   '/services': typeof ServicesRoute
   '/staff': typeof StaffRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/lookup': typeof LookupRoute
   '/services': typeof ServicesRoute
   '/staff': typeof StaffRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/booking' | '/services' | '/staff'
+  fullPaths: '/' | '/booking' | '/lookup' | '/services' | '/staff'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/booking' | '/services' | '/staff'
-  id: '__root__' | '/' | '/booking' | '/services' | '/staff'
+  to: '/' | '/booking' | '/lookup' | '/services' | '/staff'
+  id: '__root__' | '/' | '/booking' | '/lookup' | '/services' | '/staff'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookingRoute: typeof BookingRoute
+  LookupRoute: typeof LookupRoute
   ServicesRoute: typeof ServicesRoute
   StaffRoute: typeof StaffRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/booking'
       fullPath: '/booking'
       preLoaderRoute: typeof BookingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lookup': {
+      id: '/lookup'
+      path: '/lookup'
+      fullPath: '/lookup'
+      preLoaderRoute: typeof LookupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookingRoute: BookingRoute,
+  LookupRoute: LookupRoute,
   ServicesRoute: ServicesRoute,
   StaffRoute: StaffRoute,
 }
