@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BookingRouteImport } from './routes/booking'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as LookupRouteImport } from './routes/lookup'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as StaffRouteImport } from './routes/staff'
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
 const BookingRoute = BookingRouteImport.update({
   id: '/booking',
   path: '/booking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LookupRoute = LookupRouteImport.update({
@@ -44,6 +50,7 @@ const StaffRoute = StaffRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/dashboard': typeof DashboardRoute
   '/lookup': typeof LookupRoute
   '/services': typeof ServicesRoute
   '/staff': typeof StaffRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/dashboard': typeof DashboardRoute
   '/lookup': typeof LookupRoute
   '/services': typeof ServicesRoute
   '/staff': typeof StaffRoute
@@ -59,21 +67,31 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/dashboard': typeof DashboardRoute
   '/lookup': typeof LookupRoute
   '/services': typeof ServicesRoute
   '/staff': typeof StaffRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/booking' | '/lookup' | '/services' | '/staff'
+  fullPaths:
+    '/' | '/booking' | '/dashboard' | '/lookup' | '/services' | '/staff'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/booking' | '/lookup' | '/services' | '/staff'
-  id: '__root__' | '/' | '/booking' | '/lookup' | '/services' | '/staff'
+  to: '/' | '/booking' | '/dashboard' | '/lookup' | '/services' | '/staff'
+  id:
+    | '__root__'
+    | '/'
+    | '/booking'
+    | '/dashboard'
+    | '/lookup'
+    | '/services'
+    | '/staff'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookingRoute: typeof BookingRoute
+  DashboardRoute: typeof DashboardRoute
   LookupRoute: typeof LookupRoute
   ServicesRoute: typeof ServicesRoute
   StaffRoute: typeof StaffRoute
@@ -93,6 +111,13 @@ declare module '@tanstack/react-router' {
       path: '/booking'
       fullPath: '/booking'
       preLoaderRoute: typeof BookingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lookup': {
@@ -122,6 +147,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookingRoute: BookingRoute,
+  DashboardRoute: DashboardRoute,
   LookupRoute: LookupRoute,
   ServicesRoute: ServicesRoute,
   StaffRoute: StaffRoute,
