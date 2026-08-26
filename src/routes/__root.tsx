@@ -76,13 +76,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "عيادة الرفيق البيطرية | رعاية متكاملة لحيوانك الأليف" },
+      { title: "عيادة القطط | حجز موعد بخطوة واحدة" },
       {
         name: "description",
-        content:
-          "عيادة بيطرية متكاملة: كشف عام، تطعيمات، جراحة، وحجز مواعيد إلكتروني مع متابعة سجل أليفك الطبي.",
+        content: "عيادة مخصصة للقطط: حجز مواعيد بسيط ومتابعة خطة التطعيم.",
       },
-      { name: "author", content: "عيادة الرفيق البيطرية" },
+      { name: "author", content: "عيادة القطط" },
+
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
