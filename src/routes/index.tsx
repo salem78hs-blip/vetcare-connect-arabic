@@ -36,10 +36,21 @@ function HomePage() {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (form.ownerName.trim().length < 2) return toast.error("اكتب اسم المالك");
-    if (!/^07\d{9}$/.test(form.phone.trim())) return toast.error("رقم الهاتف يجب أن يكون 11 رقماً ويبدأ بـ 07");
-    if (form.catName.trim().length < 1) return toast.error("اكتب اسم القطة");
-    if (!form.date) return toast.error("اختر تاريخ الموعد");
+    const error =
+      form.ownerName.trim().length < 2
+        ? "اكتب اسم المالك"
+        : !/^07\d{9}$/.test(form.phone.trim())
+          ? "رقم الهاتف يجب أن يكون 11 رقماً ويبدأ بـ 07"
+          : form.catName.trim().length < 1
+            ? "اكتب اسم القطة"
+            : !form.date
+              ? "اختر تاريخ الموعد"
+              : null;
+    if (error) {
+      toast.error(error);
+      return;
+    }
+
 
     addBooking({
       ownerName: form.ownerName.trim(),
