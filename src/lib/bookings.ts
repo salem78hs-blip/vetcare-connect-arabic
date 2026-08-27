@@ -12,11 +12,13 @@ export type Booking = {
   id: string;
   ownerName: string;
   phone: string;
+  animalType: string;
   catName: string;
   date: string;
   createdAt: string;
   plan: VaccinationPlan | null;
 };
+
 
 const STORAGE_KEY = "clinic.bookings.v1";
 const EVENT = "clinic-bookings-changed";
