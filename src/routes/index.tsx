@@ -1,30 +1,42 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { CalendarCheck, Cat, Check, ShieldCheck } from "lucide-react";
+import {
+  CalendarCheck,
+  Check,
+  Clock,
+  Facebook,
+  Instagram,
+  MapPin,
+  Music2,
+  Phone,
+  ShieldCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addBooking, formatDate } from "@/lib/bookings";
-import heroCat from "@/assets/hero-cat.jpg";
+import { ANIMAL_TYPES, CLINIC, animalLabel } from "@/lib/clinic";
+import logo from "@/assets/vetona-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "عيادة القطط | حجز موعد بخطوة واحدة" },
+      { title: "VetOna | عيادة بيطرية — حجز موعد بخطوة واحدة" },
       {
         name: "description",
-        content: "عيادة مخصصة للقطط فقط: احجز موعد الفحص أو التطعيم بإدخال اسمك ورقم هاتفك واسم قطتك والتاريخ.",
+        content:
+          "عيادة VetOna البيطرية: احجز موعد الفحص أو التطعيم لقطتك أو كلبك أو طيورك بإدخال اسمك ورقم هاتفك والتاريخ.",
       },
-      { property: "og:title", content: "عيادة القطط | حجز موعد بخطوة واحدة" },
-      { property: "og:description", content: "حجز بسيط وسريع لعيادة مخصصة للقطط." },
+      { property: "og:title", content: "VetOna | عيادة بيطرية" },
+      { property: "og:description", content: "حجز بسيط وسريع في عيادة VetOna البيطرية." },
     ],
   }),
   component: HomePage,
 });
 
-const empty = { ownerName: "", phone: "", catName: "", date: "" };
+const empty = { ownerName: "", phone: "", animalType: "cat", petName: "", date: "" };
 
 function HomePage() {
   const [form, setForm] = useState(empty);
@@ -41,8 +53,8 @@ function HomePage() {
         ? "اكتب اسم المالك"
         : !/^07\d{9}$/.test(form.phone.trim())
           ? "رقم الهاتف يجب أن يكون 11 رقماً ويبدأ بـ 07"
-          : form.catName.trim().length < 1
-            ? "اكتب اسم القطة"
+          : !form.animalType
+            ? "اختر نوع الحيوان"
             : !form.date
               ? "اختر تاريخ الموعد"
               : null;
@@ -51,11 +63,11 @@ function HomePage() {
       return;
     }
 
-
     addBooking({
       ownerName: form.ownerName.trim(),
       phone: form.phone.trim(),
-      catName: form.catName.trim(),
+      animalType: form.animalType,
+      catName: form.petName.trim(),
       date: form.date,
     });
     setDone(form);
@@ -65,41 +77,60 @@ function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-4 py-6">
-        <span className="flex items-center gap-2 font-bold">
-          <span className="flex size-9 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-            <Cat className="size-5" />
+      <header className="mx-auto flex max-w-5xl items-center justify-between px-4 py-5">
+        <Link to="/" className="flex items-center gap-3">
+          <img
+            src={logo.url}
+            alt="شعار عيادة VetOna البيطرية"
+            width={48}
+            height={48}
+            className="size-11 rounded-2xl bg-card object-contain p-1 ring-1 ring-border"
+          />
+          <span className="leading-tight">
+            <span className="block font-display text-lg font-extrabold text-primary">VetOna</span>
+            <span className="block text-[11px] font-medium text-muted-foreground">
+              عيادة بيطرية
+            </span>
           </span>
-          عيادة القطط
-        </span>
-        <Button asChild variant="ghost" size="sm" className="rounded-2xl">
-          <Link to="/admin">لوحة الإدارة</Link>
-        </Button>
+        </Link>
+        <div className="flex items-center gap-1">
+          <Button asChild variant="ghost" size="sm" className="rounded-2xl">
+            <a href={`tel:${CLINIC.phones[0]}`}>
+              <Phone className="size-4" /> اتصل
+            </a>
+          </Button>
+          <Button asChild variant="ghost" size="sm" className="rounded-2xl">
+            <Link to="/admin">الإدارة</Link>
+          </Button>
+        </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 pb-20">
-        <section className="grid items-center gap-10 py-10 lg:grid-cols-2">
+      <main className="mx-auto max-w-5xl px-4 pb-16">
+        <section className="bg-hero-mesh grid items-center gap-10 rounded-4xl px-2 py-10 lg:grid-cols-2 lg:px-8">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground">
-              <ShieldCheck className="size-3.5" /> رعاية مخصصة للقطط فقط
+              <ShieldCheck className="size-3.5" /> رعاية بيطرية للقطط والكلاب وطيور الزينة
             </span>
             <h1 className="mt-5 text-4xl font-extrabold leading-tight sm:text-5xl">
-              موعد لقطتك <span className="text-primary">بخطوة واحدة</span>
+              موعد لحيوانك <span className="text-brand-gradient">بخطوة واحدة</span>
             </h1>
             <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">
-              فحص وتطعيم ومتابعة صحية للقطط. أكمل الحقول الأربعة وسنتواصل معك لتأكيد الموعد.
+              فحص، تطعيم، ومتابعة صحية في عيادة VetOna. أكمل الحقول وسنتواصل معك لتأكيد الموعد.
+            </p>
+            <p className="mt-4 flex items-center gap-2 text-sm font-medium text-foreground">
+              <Clock className="size-4 text-primary" /> استقبال يومي — يفضّل الحجز المسبق
             </p>
           </div>
           <img
-            src={heroCat}
-            alt="قطة هادئة برسم بسيط بلون بنفسجي"
-            width={1024}
-            height={1024}
-            className="mx-auto w-full max-w-sm rounded-4xl bg-accent object-cover"
+            src={logo.url}
+            alt="شعار عيادة VetOna: كف قطة يحوي كلباً وقطة"
+            width={900}
+            height={900}
+            className="mx-auto w-full max-w-xs rounded-4xl bg-card object-contain p-6 shadow-[var(--shadow-soft)]"
           />
         </section>
 
-        <section className="card-soft mx-auto max-w-lg p-6 sm:p-8">
+        <section className="card-soft mx-auto mt-10 max-w-lg p-6 sm:p-8">
           {done ? (
             <div className="text-center">
               <span className="mx-auto flex size-14 items-center justify-center rounded-3xl bg-secondary text-primary">
@@ -107,14 +138,15 @@ function HomePage() {
               </span>
               <h2 className="mt-4 text-lg font-bold">تم استلام الحجز</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                {done.catName} — {formatDate(done.date)}
+                {animalLabel(done.animalType)}
+                {done.petName ? ` — ${done.petName}` : ""} — {formatDate(done.date)}
               </p>
               <Button className="mt-6 rounded-2xl" onClick={() => setDone(null)}>
                 حجز موعد آخر
               </Button>
             </div>
           ) : (
-            <form onSubmit={submit} className="space-y-4">
+            <form onSubmit={submit} className="space-y-5">
               <h2 className="text-lg font-bold">احجز موعداً</h2>
 
               <div className="space-y-2">
@@ -141,13 +173,36 @@ function HomePage() {
                 />
               </div>
 
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-medium">نوع الحيوان</legend>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {ANIMAL_TYPES.map((t) => (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => set("animalType", t.value)}
+                      aria-pressed={form.animalType === t.value}
+                      className={`min-h-11 rounded-2xl border px-3 text-sm font-semibold transition-colors ${
+                        form.animalType === t.value
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-input bg-card text-foreground hover:bg-accent"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
               <div className="space-y-2">
-                <Label htmlFor="catName">اسم القطة</Label>
+                <Label htmlFor="petName">
+                  اسم الحيوان <span className="text-muted-foreground">(اختياري)</span>
+                </Label>
                 <Input
-                  id="catName"
-                  value={form.catName}
+                  id="petName"
+                  value={form.petName}
                   maxLength={40}
-                  onChange={(e) => set("catName", e.target.value)}
+                  onChange={(e) => set("petName", e.target.value)}
                   className="rounded-2xl"
                 />
               </div>
@@ -169,7 +224,85 @@ function HomePage() {
             </form>
           )}
         </section>
+
+        <section className="mt-14 grid gap-4 sm:grid-cols-3">
+          <div className="card-soft p-6">
+            <h2 className="flex items-center gap-2 text-base font-bold">
+              <Phone className="size-4 text-primary" /> الهاتف
+            </h2>
+            <div className="mt-3 space-y-2">
+              {CLINIC.phones.map((p, i) => (
+                <a
+                  key={p}
+                  href={`tel:${p}`}
+                  dir="ltr"
+                  className="block text-sm font-semibold text-foreground transition-colors hover:text-primary"
+                >
+                  {CLINIC.phonesDisplay[i]}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div className="card-soft p-6">
+            <h2 className="flex items-center gap-2 text-base font-bold">
+              <MapPin className="size-4 text-primary" /> العنوان
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{CLINIC.address}</p>
+            <a
+              href={CLINIC.mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-block text-sm font-semibold text-primary hover:underline"
+            >
+              الموقع على الخريطة
+            </a>
+          </div>
+
+          <div className="card-soft p-6">
+            <h2 className="text-base font-bold">تابعنا</h2>
+            <div className="mt-3 flex flex-col gap-2">
+              <SocialLink href={CLINIC.instagram} label="إنستغرام">
+                <Instagram className="size-4" />
+              </SocialLink>
+              <SocialLink href={CLINIC.tiktok} label="تيك توك">
+                <Music2 className="size-4" />
+              </SocialLink>
+              <SocialLink href={CLINIC.facebook} label="فيسبوك">
+                <Facebook className="size-4" />
+              </SocialLink>
+            </div>
+          </div>
+        </section>
       </main>
+
+      <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
+        VetOna — Veterinary clinic · جميع الحقوق محفوظة
+      </footer>
     </div>
+  );
+}
+
+function SocialLink({
+  href,
+  label,
+  children,
+}: {
+  href: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 rounded-2xl px-2 py-1.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent hover:text-primary"
+    >
+      <span className="flex size-8 items-center justify-center rounded-2xl bg-secondary text-primary">
+        {children}
+      </span>
+      {label}
+    </a>
   );
 }

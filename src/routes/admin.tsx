@@ -21,6 +21,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { animalLabel } from "@/lib/clinic";
+import logo from "@/assets/vetona-logo.png.asset.json";
 import {
   loadBookings,
   subscribeBookings,
@@ -37,10 +39,10 @@ const PASSCODE = "1234";
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "لوحة الإدارة | عيادة القطط" },
-      { name: "description", content: "إدارة حجوزات عيادة القطط وخطط التطعيم." },
+      { title: "لوحة الإدارة | VetOna" },
+      { name: "description", content: "إدارة حجوزات عيادة VetOna البيطرية وخطط التطعيم." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "لوحة الإدارة | عيادة القطط" },
+      { property: "og:title", content: "لوحة الإدارة | VetOna" },
       { property: "og:description", content: "متابعة الحجوزات وتحديد خطة التطعيم القادمة." },
     ],
   }),
@@ -97,7 +99,16 @@ function AdminPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-6">
-        <h1 className="text-xl font-extrabold">الحجوزات</h1>
+        <div className="flex items-center gap-3">
+          <img
+            src={logo.url}
+            alt="شعار VetOna"
+            width={44}
+            height={44}
+            className="size-10 rounded-2xl bg-card object-contain p-1 ring-1 ring-border"
+          />
+          <h1 className="text-xl font-extrabold">الحجوزات</h1>
+        </div>
         <Button asChild variant="ghost" size="sm" className="rounded-2xl">
           <Link to="/">الموقع</Link>
         </Button>
@@ -113,7 +124,8 @@ function AdminPage() {
                 <TableRow>
                   <TableHead className="text-right">المالك</TableHead>
                   <TableHead className="text-right">الهاتف</TableHead>
-                  <TableHead className="text-right">القطة</TableHead>
+                  <TableHead className="text-right">النوع</TableHead>
+                  <TableHead className="text-right">اسم الحيوان</TableHead>
                   <TableHead className="text-right">الموعد</TableHead>
                   <TableHead className="text-right">خطة التطعيم</TableHead>
                   <TableHead className="text-right">إجراء</TableHead>
@@ -126,7 +138,8 @@ function AdminPage() {
                     <TableCell dir="ltr" className="text-right">
                       {b.phone}
                     </TableCell>
-                    <TableCell>{b.catName}</TableCell>
+                    <TableCell>{animalLabel(b.animalType)}</TableCell>
+                    <TableCell>{b.catName || "—"}</TableCell>
                     <TableCell>{formatDate(b.date)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {b.plan && b.plan.doses.length > 0
@@ -202,7 +215,7 @@ function PlanDialog({ booking, onClose }: { booking: Booking | null; onClose: ()
       <DialogContent className="max-w-lg rounded-3xl">
         <DialogHeader>
           <DialogTitle className="text-right">
-            خطة التطعيم {booking ? `— ${booking.catName}` : ""}
+            خطة التطعيم {booking ? `— ${booking.catName || animalLabel(booking.animalType)}` : ""}
           </DialogTitle>
         </DialogHeader>
 

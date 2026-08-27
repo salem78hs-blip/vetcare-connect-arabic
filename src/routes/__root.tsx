@@ -76,12 +76,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "عيادة القطط | حجز موعد بخطوة واحدة" },
+      { title: "VetOna | عيادة بيطرية — حجز موعد بخطوة واحدة" },
       {
         name: "description",
-        content: "عيادة مخصصة للقطط: حجز مواعيد بسيط ومتابعة خطة التطعيم.",
+        content: "عيادة VetOna البيطرية: حجز مواعيد بسيط ومتابعة خطة التطعيم للقطط والكلاب والطيور.",
       },
-      { name: "author", content: "عيادة القطط" },
+      { name: "author", content: "VetOna Veterinary Clinic" },
 
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -94,9 +94,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Cairo:wght@500;600;700;800&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
   }),
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
