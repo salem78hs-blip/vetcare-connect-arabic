@@ -133,6 +133,18 @@ function HomePage() {
             <p className="mt-4 flex items-center gap-2 text-sm font-medium text-foreground">
               <Clock className="size-4 text-primary" /> استقبال يومي — يفضّل الحجز المسبق
             </p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <Button asChild size="lg" className="rounded-2xl">
+                <a href="#booking">
+                  <CalendarCheck className="size-5" /> احجز الآن
+                </a>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="rounded-2xl">
+                <a href={`tel:${CLINIC.phones[0]}`}>
+                  <Phone className="size-4" /> اتصل بنا
+                </a>
+              </Button>
+            </div>
           </div>
           <img
             src={logo.url}
