@@ -18,6 +18,7 @@ export const ANIMAL_TYPES = [
   { value: "other", label: "أخرى" },
 ] as const;
 
-export function animalLabel(value: string) {
+export function animalLabel(value: string, other?: string) {
+  if (value === "other") return other?.trim() ? other.trim() : "أخرى";
   return ANIMAL_TYPES.find((t) => t.value === value)?.label ?? "أخرى";
 }

@@ -5,11 +5,14 @@ import {
   Check,
   Clock,
   Facebook,
+  HeartPulse,
   Instagram,
   MapPin,
   Music2,
   Phone,
   ShieldCheck,
+  Stethoscope,
+  Syringe,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,7 +39,14 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-const empty = { ownerName: "", phone: "", animalType: "cat", petName: "", date: "" };
+const empty = {
+  ownerName: "",
+  phone: "",
+  animalType: "cat",
+  animalOther: "",
+  petName: "",
+  date: "",
+};
 
 function HomePage() {
   const [form, setForm] = useState(empty);
@@ -53,11 +63,13 @@ function HomePage() {
         ? "اكتب اسم المالك"
         : !/^07\d{9}$/.test(form.phone.trim())
           ? "رقم الهاتف يجب أن يكون 11 رقماً ويبدأ بـ 07"
-          : !form.animalType
-            ? "اختر نوع الحيوان"
-            : !form.date
-              ? "اختر تاريخ الموعد"
-              : null;
+            : !form.animalType
+              ? "اختر نوع الحيوان"
+              : form.animalType === "other" && form.animalOther.trim().length < 2
+                ? "اكتب نوع الحيوان"
+                : !form.date
+                  ? "اختر تاريخ الموعد"
+                  : null;
     if (error) {
       toast.error(error);
       return;
@@ -67,6 +79,7 @@ function HomePage() {
       ownerName: form.ownerName.trim(),
       phone: form.phone.trim(),
       animalType: form.animalType,
+      animalOther: form.animalType === "other" ? form.animalOther.trim() : "",
       catName: form.petName.trim(),
       date: form.date,
     });
@@ -77,7 +90,8 @@ function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-4 py-5">
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
         <Link to="/" className="flex items-center gap-3">
           <img
             src={logo.url}
@@ -102,8 +116,10 @@ function HomePage() {
           <Button asChild variant="ghost" size="sm" className="rounded-2xl">
             <Link to="/admin">الإدارة</Link>
           </Button>
+          </div>
         </div>
       </header>
+
 
       <main className="mx-auto max-w-5xl px-4 pb-16">
         <section className="bg-hero-mesh grid items-center gap-10 rounded-4xl px-2 py-10 lg:grid-cols-2 lg:px-8">
@@ -120,6 +136,18 @@ function HomePage() {
             <p className="mt-4 flex items-center gap-2 text-sm font-medium text-foreground">
               <Clock className="size-4 text-primary" /> استقبال يومي — يفضّل الحجز المسبق
             </p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <Button asChild size="lg" className="rounded-2xl">
+                <a href="#booking">
+                  <CalendarCheck className="size-5" /> احجز الآن
+                </a>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="rounded-2xl">
+                <a href={`tel:${CLINIC.phones[0]}`}>
+                  <Phone className="size-4" /> اتصل بنا
+                </a>
+              </Button>
+            </div>
           </div>
           <img
             src={logo.url}
@@ -130,7 +158,26 @@ function HomePage() {
           />
         </section>
 
-        <section className="card-soft mx-auto mt-10 max-w-lg p-6 sm:p-8">
+        <section className="mt-8 grid gap-3 sm:grid-cols-3">
+          {[
+            { icon: Stethoscope, title: "فحص سريري", text: "تشخيص دقيق ومتابعة حالة حيوانك" },
+            { icon: Syringe, title: "تطعيمات", text: "جدول جرعات منظّم مع تذكير بالموعد" },
+            { icon: HeartPulse, title: "رعاية ومتابعة", text: "إرشادات تغذية وعناية بعد الزيارة" },
+          ].map((f) => (
+            <div
+              key={f.title}
+              className="card-soft p-5 transition-shadow hover:shadow-[var(--shadow-lift)]"
+            >
+              <span className="flex size-10 items-center justify-center rounded-2xl bg-secondary text-primary">
+                <f.icon className="size-5" />
+              </span>
+              <h2 className="mt-3 text-sm font-bold">{f.title}</h2>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{f.text}</p>
+            </div>
+          ))}
+        </section>
+
+        <section id="booking" className="card-soft mx-auto mt-10 max-w-lg p-6 sm:p-8 scroll-mt-24">
           {done ? (
             <div className="text-center">
               <span className="mx-auto flex size-14 items-center justify-center rounded-3xl bg-secondary text-primary">
@@ -138,7 +185,7 @@ function HomePage() {
               </span>
               <h2 className="mt-4 text-lg font-bold">تم استلام الحجز</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                {animalLabel(done.animalType)}
+                {animalLabel(done.animalType, done.animalOther)}
                 {done.petName ? ` — ${done.petName}` : ""} — {formatDate(done.date)}
               </p>
               <Button className="mt-6 rounded-2xl" onClick={() => setDone(null)}>
@@ -192,7 +239,22 @@ function HomePage() {
                     </button>
                   ))}
                 </div>
+                {form.animalType === "other" && (
+                  <div className="space-y-2 pt-1">
+                    <Label htmlFor="animalOther">اكتب نوع الحيوان</Label>
+                    <Input
+                      id="animalOther"
+                      autoFocus
+                      placeholder="مثال: أرنب، سلحفاة، هامستر…"
+                      value={form.animalOther}
+                      maxLength={40}
+                      onChange={(e) => set("animalOther", e.target.value)}
+                      className="rounded-2xl"
+                    />
+                  </div>
+                )}
               </fieldset>
+
 
               <div className="space-y-2">
                 <Label htmlFor="petName">

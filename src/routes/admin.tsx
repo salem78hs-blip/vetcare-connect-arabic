@@ -138,7 +138,7 @@ function AdminPage() {
                     <TableCell dir="ltr" className="text-right">
                       {b.phone}
                     </TableCell>
-                    <TableCell>{animalLabel(b.animalType)}</TableCell>
+                    <TableCell>{animalLabel(b.animalType, b.animalOther)}</TableCell>
                     <TableCell>{b.catName || "—"}</TableCell>
                     <TableCell>{formatDate(b.date)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
@@ -215,7 +215,10 @@ function PlanDialog({ booking, onClose }: { booking: Booking | null; onClose: ()
       <DialogContent className="max-w-lg rounded-3xl">
         <DialogHeader>
           <DialogTitle className="text-right">
-            خطة التطعيم {booking ? `— ${booking.catName || animalLabel(booking.animalType)}` : ""}
+            خطة التطعيم{" "}
+            {booking
+              ? `— ${booking.catName || animalLabel(booking.animalType, booking.animalOther)}`
+              : ""}
           </DialogTitle>
         </DialogHeader>
 
