@@ -76,17 +76,22 @@ function HomePage() {
       return;
     }
 
-    addBooking({
-      ownerName: form.ownerName.trim(),
-      phone: form.phone.trim(),
-      animalType: form.animalType,
-      animalOther: form.animalType === "other" ? form.animalOther.trim() : "",
-      catName: form.petName.trim(),
-      date: form.date,
-    });
-    setDone(form);
-    setForm(empty);
-    toast.success("تم تسجيل الحجز");
+    setSaving(true);
+    const snapshot = form;
+    window.setTimeout(() => {
+      addBooking({
+        ownerName: snapshot.ownerName.trim(),
+        phone: snapshot.phone.trim(),
+        animalType: snapshot.animalType,
+        animalOther: snapshot.animalType === "other" ? snapshot.animalOther.trim() : "",
+        catName: snapshot.petName.trim(),
+        date: snapshot.date,
+      });
+      setSaving(false);
+      setDone(snapshot);
+      setForm(empty);
+      toast.success("تم تسجيل الحجز");
+    }, 450);
   }
 
   return (
