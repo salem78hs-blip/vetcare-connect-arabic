@@ -113,8 +113,10 @@ function HomePage() {
           <Button asChild variant="ghost" size="sm" className="rounded-2xl">
             <Link to="/admin">الإدارة</Link>
           </Button>
+          </div>
         </div>
       </header>
+
 
       <main className="mx-auto max-w-5xl px-4 pb-16">
         <section className="bg-hero-mesh grid items-center gap-10 rounded-4xl px-2 py-10 lg:grid-cols-2 lg:px-8">
