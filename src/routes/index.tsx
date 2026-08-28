@@ -5,11 +5,14 @@ import {
   Check,
   Clock,
   Facebook,
+  HeartPulse,
   Instagram,
   MapPin,
   Music2,
   Phone,
   ShieldCheck,
+  Stethoscope,
+  Syringe,
 } from "lucide-react";
 import { toast } from "sonner";
 
