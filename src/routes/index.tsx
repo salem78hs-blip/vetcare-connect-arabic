@@ -87,7 +87,8 @@ function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-4 py-5">
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
         <Link to="/" className="flex items-center gap-3">
           <img
             src={logo.url}
