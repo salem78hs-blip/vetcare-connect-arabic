@@ -148,7 +148,7 @@ function HomePage() {
               </span>
               <h2 className="mt-4 text-lg font-bold">تم استلام الحجز</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                {animalLabel(done.animalType)}
+                {animalLabel(done.animalType, done.animalOther)}
                 {done.petName ? ` — ${done.petName}` : ""} — {formatDate(done.date)}
               </p>
               <Button className="mt-6 rounded-2xl" onClick={() => setDone(null)}>
@@ -202,7 +202,22 @@ function HomePage() {
                     </button>
                   ))}
                 </div>
+                {form.animalType === "other" && (
+                  <div className="space-y-2 pt-1">
+                    <Label htmlFor="animalOther">اكتب نوع الحيوان</Label>
+                    <Input
+                      id="animalOther"
+                      autoFocus
+                      placeholder="مثال: أرنب، سلحفاة، هامستر…"
+                      value={form.animalOther}
+                      maxLength={40}
+                      onChange={(e) => set("animalOther", e.target.value)}
+                      className="rounded-2xl"
+                    />
+                  </div>
+                )}
               </fieldset>
+
 
               <div className="space-y-2">
                 <Label htmlFor="petName">
