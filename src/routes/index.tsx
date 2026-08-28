@@ -60,11 +60,13 @@ function HomePage() {
         ? "اكتب اسم المالك"
         : !/^07\d{9}$/.test(form.phone.trim())
           ? "رقم الهاتف يجب أن يكون 11 رقماً ويبدأ بـ 07"
-          : !form.animalType
-            ? "اختر نوع الحيوان"
-            : !form.date
-              ? "اختر تاريخ الموعد"
-              : null;
+            : !form.animalType
+              ? "اختر نوع الحيوان"
+              : form.animalType === "other" && form.animalOther.trim().length < 2
+                ? "اكتب نوع الحيوان"
+                : !form.date
+                  ? "اختر تاريخ الموعد"
+                  : null;
     if (error) {
       toast.error(error);
       return;
@@ -74,6 +76,7 @@ function HomePage() {
       ownerName: form.ownerName.trim(),
       phone: form.phone.trim(),
       animalType: form.animalType,
+      animalOther: form.animalType === "other" ? form.animalOther.trim() : "",
       catName: form.petName.trim(),
       date: form.date,
     });
