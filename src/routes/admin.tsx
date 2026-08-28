@@ -52,7 +52,7 @@ export const Route = createFileRoute("/admin")({
 function AdminPage() {
   const [unlocked, setUnlocked] = useState(false);
   const [code, setCode] = useState("");
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<Booking[] | null>(null);
   const [editing, setEditing] = useState<Booking | null>(null);
 
   useEffect(() => {
