@@ -36,7 +36,14 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-const empty = { ownerName: "", phone: "", animalType: "cat", petName: "", date: "" };
+const empty = {
+  ownerName: "",
+  phone: "",
+  animalType: "cat",
+  animalOther: "",
+  petName: "",
+  date: "",
+};
 
 function HomePage() {
   const [form, setForm] = useState(empty);
