@@ -281,8 +281,16 @@ function HomePage() {
                 />
               </div>
 
-              <Button type="submit" size="lg" className="w-full rounded-2xl">
-                <CalendarCheck className="size-5" /> تأكيد الحجز
+              <Button type="submit" size="lg" disabled={saving} className="w-full rounded-2xl">
+                {saving ? (
+                  <>
+                    <Loader2 className="size-5 animate-spin" /> جارٍ التسجيل…
+                  </>
+                ) : (
+                  <>
+                    <CalendarCheck className="size-5" /> تأكيد الحجز
+                  </>
+                )}
               </Button>
             </form>
           )}
