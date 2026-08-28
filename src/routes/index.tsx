@@ -7,6 +7,7 @@ import {
   Facebook,
   HeartPulse,
   Instagram,
+  Loader2,
   MapPin,
   Music2,
   Phone,
