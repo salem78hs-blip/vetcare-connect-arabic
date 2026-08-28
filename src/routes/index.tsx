@@ -155,7 +155,26 @@ function HomePage() {
           />
         </section>
 
-        <section className="card-soft mx-auto mt-10 max-w-lg p-6 sm:p-8">
+        <section className="mt-8 grid gap-3 sm:grid-cols-3">
+          {[
+            { icon: Stethoscope, title: "فحص سريري", text: "تشخيص دقيق ومتابعة حالة حيوانك" },
+            { icon: Syringe, title: "تطعيمات", text: "جدول جرعات منظّم مع تذكير بالموعد" },
+            { icon: HeartPulse, title: "رعاية ومتابعة", text: "إرشادات تغذية وعناية بعد الزيارة" },
+          ].map((f) => (
+            <div
+              key={f.title}
+              className="card-soft p-5 transition-shadow hover:shadow-[var(--shadow-lift)]"
+            >
+              <span className="flex size-10 items-center justify-center rounded-2xl bg-secondary text-primary">
+                <f.icon className="size-5" />
+              </span>
+              <h2 className="mt-3 text-sm font-bold">{f.title}</h2>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{f.text}</p>
+            </div>
+          ))}
+        </section>
+
+        <section id="booking" className="card-soft mx-auto mt-10 max-w-lg p-6 sm:p-8 scroll-mt-24">
           {done ? (
             <div className="text-center">
               <span className="mx-auto flex size-14 items-center justify-center rounded-3xl bg-secondary text-primary">
