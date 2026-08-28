@@ -7,6 +7,7 @@ import {
   Facebook,
   HeartPulse,
   Instagram,
+  Loader2,
   MapPin,
   Music2,
   Phone,
@@ -51,6 +52,7 @@ const empty = {
 function HomePage() {
   const [form, setForm] = useState(empty);
   const [done, setDone] = useState<typeof empty | null>(null);
+  const [saving, setSaving] = useState(false);
 
   function set(key: keyof typeof empty, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -75,74 +77,80 @@ function HomePage() {
       return;
     }
 
-    addBooking({
-      ownerName: form.ownerName.trim(),
-      phone: form.phone.trim(),
-      animalType: form.animalType,
-      animalOther: form.animalType === "other" ? form.animalOther.trim() : "",
-      catName: form.petName.trim(),
-      date: form.date,
-    });
-    setDone(form);
-    setForm(empty);
-    toast.success("تم تسجيل الحجز");
+    setSaving(true);
+    const snapshot = form;
+    window.setTimeout(() => {
+      addBooking({
+        ownerName: snapshot.ownerName.trim(),
+        phone: snapshot.phone.trim(),
+        animalType: snapshot.animalType,
+        animalOther: snapshot.animalType === "other" ? snapshot.animalOther.trim() : "",
+        catName: snapshot.petName.trim(),
+        date: snapshot.date,
+      });
+      setSaving(false);
+      setDone(snapshot);
+      setForm(empty);
+      toast.success("تم تسجيل الحجز");
+    }, 450);
   }
 
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-        <Link to="/" className="flex items-center gap-3">
-          <img
-            src={logo.url}
-            alt="شعار عيادة VetOna البيطرية"
-            width={48}
-            height={48}
-            className="size-11 rounded-2xl bg-card object-contain p-1 ring-1 ring-border"
-          />
-          <span className="leading-tight">
-            <span className="block font-display text-lg font-extrabold text-primary">VetOna</span>
-            <span className="block text-[11px] font-medium text-muted-foreground">
-              عيادة بيطرية
+        <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:py-4">
+          <Link to="/" className="flex min-w-0 items-center gap-2.5">
+            <img
+              src={logo.url}
+              alt="شعار عيادة VetOna البيطرية"
+              width={48}
+              height={48}
+              className="size-10 shrink-0 rounded-2xl bg-card object-contain p-1 ring-1 ring-border sm:size-11"
+            />
+            <span className="min-w-0 leading-tight">
+              <span className="block truncate font-display text-base font-extrabold text-primary sm:text-lg">
+                VetOna
+              </span>
+              <span className="block truncate text-[11px] font-medium text-muted-foreground">
+                عيادة بيطرية
+              </span>
             </span>
-          </span>
-        </Link>
-        <div className="flex items-center gap-1">
-          <Button asChild variant="ghost" size="sm" className="rounded-2xl">
-            <a href={`tel:${CLINIC.phones[0]}`}>
-              <Phone className="size-4" /> اتصل
-            </a>
-          </Button>
-          <Button asChild variant="ghost" size="sm" className="rounded-2xl">
-            <Link to="/admin">الإدارة</Link>
-          </Button>
+          </Link>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button asChild variant="ghost" size="sm" className="rounded-2xl">
+              <a href={`tel:${CLINIC.phones[0]}`} aria-label="اتصل بالعيادة">
+                <Phone className="size-4" /> <span className="hidden sm:inline">اتصل</span>
+              </a>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="rounded-2xl">
+              <Link to="/admin">الإدارة</Link>
+            </Button>
           </div>
         </div>
       </header>
 
-
       <main className="mx-auto max-w-5xl px-4 pb-16">
-        <section className="bg-hero-mesh grid items-center gap-10 rounded-4xl px-2 py-10 lg:grid-cols-2 lg:px-8">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground">
-              <ShieldCheck className="size-3.5" /> رعاية بيطرية للقطط والكلاب وطيور الزينة
+        <section className="bg-hero-mesh grid items-center gap-8 rounded-4xl px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-2 lg:px-8">
+          <div className="order-2 lg:order-1">
+            <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold text-secondary-foreground sm:text-xs">
+              <ShieldCheck className="size-3.5 shrink-0" /> رعاية بيطرية للقطط والكلاب وطيور الزينة
             </span>
-            <h1 className="mt-5 text-4xl font-extrabold leading-tight sm:text-5xl">
+            <h1 className="mt-4 text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl">
               موعد لحيوانك <span className="text-brand-gradient">بخطوة واحدة</span>
             </h1>
-            <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:text-base">
               فحص، تطعيم، ومتابعة صحية في عيادة VetOna. أكمل الحقول وسنتواصل معك لتأكيد الموعد.
             </p>
             <p className="mt-4 flex items-center gap-2 text-sm font-medium text-foreground">
-              <Clock className="size-4 text-primary" /> استقبال يومي — يفضّل الحجز المسبق
+              <Clock className="size-4 shrink-0 text-primary" /> استقبال يومي — يفضّل الحجز المسبق
             </p>
-            <div className="mt-6 flex flex-wrap gap-2">
-              <Button asChild size="lg" className="rounded-2xl">
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <Button asChild size="lg" className="w-full rounded-2xl sm:w-auto">
                 <a href="#booking">
                   <CalendarCheck className="size-5" /> احجز الآن
                 </a>
               </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-2xl">
+              <Button asChild size="lg" variant="outline" className="w-full rounded-2xl sm:w-auto">
                 <a href={`tel:${CLINIC.phones[0]}`}>
                   <Phone className="size-4" /> اتصل بنا
                 </a>
@@ -154,7 +162,7 @@ function HomePage() {
             alt="شعار عيادة VetOna: كف قطة يحوي كلباً وقطة"
             width={900}
             height={900}
-            className="mx-auto w-full max-w-xs rounded-4xl bg-card object-contain p-6 shadow-[var(--shadow-soft)]"
+            className="order-1 mx-auto w-full max-w-[190px] rounded-4xl bg-card object-contain p-4 shadow-[var(--shadow-soft)] sm:max-w-xs sm:p-6 lg:order-2"
           />
         </section>
 
@@ -280,8 +288,16 @@ function HomePage() {
                 />
               </div>
 
-              <Button type="submit" size="lg" className="w-full rounded-2xl">
-                <CalendarCheck className="size-5" /> تأكيد الحجز
+              <Button type="submit" size="lg" disabled={saving} className="w-full rounded-2xl">
+                {saving ? (
+                  <>
+                    <Loader2 className="size-5 animate-spin" /> جارٍ التسجيل…
+                  </>
+                ) : (
+                  <>
+                    <CalendarCheck className="size-5" /> تأكيد الحجز
+                  </>
+                )}
               </Button>
             </form>
           )}

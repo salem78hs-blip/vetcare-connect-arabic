@@ -52,7 +52,7 @@ export const Route = createFileRoute("/admin")({
 function AdminPage() {
   const [unlocked, setUnlocked] = useState(false);
   const [code, setCode] = useState("");
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<Booking[] | null>(null);
   const [editing, setEditing] = useState<Booking | null>(null);
 
   useEffect(() => {
@@ -98,28 +98,114 @@ function AdminPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-6">
-        <div className="flex items-center gap-3">
-          <img
-            src={logo.url}
-            alt="شعار VetOna"
-            width={44}
-            height={44}
-            className="size-10 rounded-2xl bg-card object-contain p-1 ring-1 ring-border"
-          />
-          <h1 className="text-xl font-extrabold">الحجوزات</h1>
+      <header className="border-b border-border/60 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <img
+              src={logo.url}
+              alt="شعار VetOna"
+              width={44}
+              height={44}
+              className="size-10 shrink-0 rounded-2xl bg-card object-contain p-1 ring-1 ring-border"
+            />
+            <h1 className="truncate text-lg font-extrabold sm:text-xl">الحجوزات</h1>
+          </div>
+          <Button asChild variant="ghost" size="sm" className="shrink-0 rounded-2xl">
+            <Link to="/">الموقع</Link>
+          </Button>
         </div>
-        <Button asChild variant="ghost" size="sm" className="rounded-2xl">
-          <Link to="/">الموقع</Link>
-        </Button>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pb-20">
-        <div className="card-soft overflow-hidden">
-          {bookings.length === 0 ? (
-            <p className="p-10 text-center text-sm text-muted-foreground">لا توجد حجوزات بعد.</p>
-          ) : (
-            <Table>
+      <main className="mx-auto max-w-6xl px-4 py-6 pb-20">
+        {bookings === null ? (
+          <div className="space-y-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="card-soft p-5">
+                <div className="h-4 w-32 animate-pulse rounded-full bg-muted" />
+                <div className="mt-3 h-3 w-48 animate-pulse rounded-full bg-muted" />
+                <div className="mt-2 h-3 w-24 animate-pulse rounded-full bg-muted" />
+              </div>
+            ))}
+          </div>
+        ) : bookings.length === 0 ? (
+          <div className="card-soft px-6 py-14 text-center">
+            <span className="mx-auto flex size-14 items-center justify-center rounded-3xl bg-secondary text-primary">
+              <CalendarX className="size-7" />
+            </span>
+            <h2 className="mt-4 text-base font-bold">لا توجد حجوزات بعد</h2>
+            <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
+              ستظهر الحجوزات هنا مباشرة بعد أن يرسل أحد العملاء طلب موعد من الموقع.
+            </p>
+            <Button asChild variant="outline" className="mt-6 rounded-2xl">
+              <Link to="/">فتح صفحة الحجز</Link>
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-3 lg:hidden">
+              {bookings.map((b) => (
+                <div key={b.id} className="card-soft p-5">
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">{b.ownerName}</p>
+                      <a
+                        href={`tel:${b.phone}`}
+                        dir="ltr"
+                        className="mt-0.5 block text-xs font-semibold text-primary"
+                      >
+                        {b.phone}
+                      </a>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-secondary px-3 py-1 text-[11px] font-bold text-secondary-foreground">
+                      {animalLabel(b.animalType, b.animalOther)}
+                    </span>
+                  </div>
+                  <dl className="mt-4 space-y-1.5 text-xs">
+                    <div className="flex gap-2">
+                      <dt className="text-muted-foreground">اسم الحيوان:</dt>
+                      <dd className="min-w-0 truncate font-semibold">{b.catName || "—"}</dd>
+                    </div>
+                    <div className="flex gap-2">
+                      <dt className="text-muted-foreground">الموعد:</dt>
+                      <dd className="font-semibold">{formatDate(b.date)}</dd>
+                    </div>
+                    <div className="flex gap-2">
+                      <dt className="text-muted-foreground">خطة التطعيم:</dt>
+                      <dd className="min-w-0 font-semibold">
+                        {b.plan && b.plan.doses.length > 0
+                          ? `${b.plan.doses.length} جرعة — ${formatDate(b.plan.doses[0]!.date)}`
+                          : "غير محددة"}
+                      </dd>
+                    </div>
+                  </dl>
+                  <div className="mt-4 flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 rounded-2xl"
+                      onClick={() => setEditing(b)}
+                    >
+                      <Syringe className="size-4" /> خطة التطعيم
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      aria-label="حذف الحجز"
+                      className="min-h-11 min-w-11 shrink-0 rounded-2xl text-destructive"
+                      onClick={() => {
+                        removeBooking(b.id);
+                        toast.success("تم حذف الحجز");
+                      }}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="card-soft hidden overflow-hidden lg:block">
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-right">المالك</TableHead>
