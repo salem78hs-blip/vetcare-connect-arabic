@@ -13,6 +13,7 @@ export type Booking = {
   ownerName: string;
   phone: string;
   animalType: string;
+  animalOther?: string;
   catName: string;
   date: string;
   createdAt: string;
