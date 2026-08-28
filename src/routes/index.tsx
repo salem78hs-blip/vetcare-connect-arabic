@@ -51,6 +51,7 @@ const empty = {
 function HomePage() {
   const [form, setForm] = useState(empty);
   const [done, setDone] = useState<typeof empty | null>(null);
+  const [saving, setSaving] = useState(false);
 
   function set(key: keyof typeof empty, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
