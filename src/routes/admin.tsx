@@ -263,12 +263,11 @@ function AdminPage() {
           </div>
         </>
       )}
-    </div>
-      </main>
+    </main>
 
-      <PlanDialog booking={editing} onClose={() => setEditing(null)} />
-    </div>
-  );
+    <PlanDialog booking={editing} onClose={() => setEditing(null)} />
+  </div>
+);
 }
 
 function PlanDialog({ booking, onClose }: { booking: Booking | null; onClose: () => void }) {
