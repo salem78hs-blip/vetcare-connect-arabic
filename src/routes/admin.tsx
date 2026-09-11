@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Lock, Plus, Syringe, Trash2 } from "lucide-react";
+import { CalendarX, Lock, Plus, Syringe, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -260,8 +260,10 @@ function AdminPage() {
                 ))}
               </TableBody>
             </Table>
-          )}
-        </div>
+          </div>
+        </>
+      )}
+    </div>
       </main>
 
       <PlanDialog booking={editing} onClose={() => setEditing(null)} />
