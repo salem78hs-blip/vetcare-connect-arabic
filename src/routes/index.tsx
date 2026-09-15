@@ -21,7 +21,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { addBooking, formatDate } from "@/lib/bookings";
+import { createBooking } from "@/lib/bookings.functions";
+import { formatDate } from "@/lib/bookings";
 import { ANIMAL_TYPES, CLINIC, animalLabel } from "@/lib/clinic";
 import logo from "@/assets/vetona-logo.png.asset.json";
 
