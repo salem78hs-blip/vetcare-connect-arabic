@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import {
   CalendarCheck,
   Check,
@@ -20,7 +21,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { addBooking, formatDate } from "@/lib/bookings";
+import { createBooking } from "@/lib/bookings.functions";
+import { formatDate } from "@/lib/bookings";
 import { ANIMAL_TYPES, CLINIC, animalLabel } from "@/lib/clinic";
 import logo from "@/assets/vetona-logo.png.asset.json";
 
@@ -50,6 +52,7 @@ const empty = {
 };
 
 function HomePage() {
+  const save = useServerFn(createBooking);
   const [form, setForm] = useState(empty);
   const [done, setDone] = useState<typeof empty | null>(null);
   const [saving, setSaving] = useState(false);
@@ -58,7 +61,7 @@ function HomePage() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     const error =
       form.ownerName.trim().length < 2
@@ -79,20 +82,25 @@ function HomePage() {
 
     setSaving(true);
     const snapshot = form;
-    window.setTimeout(() => {
-      addBooking({
-        ownerName: snapshot.ownerName.trim(),
-        phone: snapshot.phone.trim(),
-        animalType: snapshot.animalType,
-        animalOther: snapshot.animalType === "other" ? snapshot.animalOther.trim() : "",
-        catName: snapshot.petName.trim(),
-        date: snapshot.date,
+    try {
+      await save({
+        data: {
+          ownerName: snapshot.ownerName.trim(),
+          phone: snapshot.phone.trim(),
+          animalType: snapshot.animalType,
+          animalOther: snapshot.animalType === "other" ? snapshot.animalOther.trim() : "",
+          catName: snapshot.petName.trim(),
+          date: snapshot.date,
+        },
       });
-      setSaving(false);
       setDone(snapshot);
       setForm(empty);
       toast.success("تم تسجيل الحجز");
-    }, 450);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذّر حفظ الحجز، حاول مرة أخرى");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
