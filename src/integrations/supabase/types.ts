@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          animal_other: string | null
+          animal_type: string
+          booking_date: string
+          created_at: string
+          id: string
+          owner_name: string
+          pet_name: string | null
+          phone: string
+          updated_at: string
+          vaccination_plan: Json | null
+        }
+        Insert: {
+          animal_other?: string | null
+          animal_type: string
+          booking_date: string
+          created_at?: string
+          id?: string
+          owner_name: string
+          pet_name?: string | null
+          phone: string
+          updated_at?: string
+          vaccination_plan?: Json | null
+        }
+        Update: {
+          animal_other?: string | null
+          animal_type?: string
+          booking_date?: string
+          created_at?: string
+          id?: string
+          owner_name?: string
+          pet_name?: string | null
+          phone?: string
+          updated_at?: string
+          vaccination_plan?: Json | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
