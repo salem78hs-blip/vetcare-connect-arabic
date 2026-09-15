@@ -52,6 +52,7 @@ const empty = {
 };
 
 function HomePage() {
+  const save = useServerFn(createBooking);
   const [form, setForm] = useState(empty);
   const [done, setDone] = useState<typeof empty | null>(null);
   const [saving, setSaving] = useState(false);
@@ -60,7 +61,7 @@ function HomePage() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     const error =
       form.ownerName.trim().length < 2
@@ -81,20 +82,25 @@ function HomePage() {
 
     setSaving(true);
     const snapshot = form;
-    window.setTimeout(() => {
-      addBooking({
-        ownerName: snapshot.ownerName.trim(),
-        phone: snapshot.phone.trim(),
-        animalType: snapshot.animalType,
-        animalOther: snapshot.animalType === "other" ? snapshot.animalOther.trim() : "",
-        catName: snapshot.petName.trim(),
-        date: snapshot.date,
+    try {
+      await save({
+        data: {
+          ownerName: snapshot.ownerName.trim(),
+          phone: snapshot.phone.trim(),
+          animalType: snapshot.animalType,
+          animalOther: snapshot.animalType === "other" ? snapshot.animalOther.trim() : "",
+          catName: snapshot.petName.trim(),
+          date: snapshot.date,
+        },
       });
-      setSaving(false);
       setDone(snapshot);
       setForm(empty);
       toast.success("تم تسجيل الحجز");
-    }, 450);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذّر حفظ الحجز، حاول مرة أخرى");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
