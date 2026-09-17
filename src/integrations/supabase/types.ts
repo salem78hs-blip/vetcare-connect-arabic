@@ -53,6 +53,89 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          created_at: string
+          customer_name: string
+          id: string
+          note: string | null
+          phone: string
+          product_id: string | null
+          product_name: string
+          quantity: number
+          status: string
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          id?: string
+          note?: string | null
+          phone: string
+          product_id?: string | null
+          product_name: string
+          quantity?: number
+          status?: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          id?: string
+          note?: string | null
+          phone?: string
+          product_id?: string | null
+          product_name?: string
+          quantity?: number
+          status?: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_available: boolean
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          name: string
+          price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
