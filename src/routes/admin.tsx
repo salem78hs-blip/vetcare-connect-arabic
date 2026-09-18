@@ -64,6 +64,8 @@ export const Route = createFileRoute("/admin")({
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "لوحة الإدارة | VetOna" },
       { property: "og:description", content: "متابعة الحجوزات والمنتجات والطلبات." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AdminPage,
