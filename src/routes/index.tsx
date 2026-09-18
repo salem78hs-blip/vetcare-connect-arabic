@@ -12,7 +12,9 @@ import {
   MapPin,
   Music2,
   Phone,
+  Search,
   ShieldCheck,
+  ShoppingBag,
   Stethoscope,
   Syringe,
 } from "lucide-react";
@@ -37,6 +39,8 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:title", content: "VetOna | عيادة بيطرية" },
       { property: "og:description", content: "حجز بسيط وسريع في عيادة VetOna البيطرية." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: HomePage,
@@ -126,12 +130,19 @@ function HomePage() {
           </Link>
           <div className="flex shrink-0 items-center gap-1">
             <Button asChild variant="ghost" size="sm" className="rounded-2xl">
+              <Link to="/store" aria-label="متجر المنتجات">
+                <ShoppingBag className="size-4" /> <span className="hidden sm:inline">المتجر</span>
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="rounded-2xl">
+              <Link to="/track" aria-label="متابعة حالة الأليف">
+                <Search className="size-4" /> <span className="hidden sm:inline">المتابعة</span>
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="rounded-2xl">
               <a href={`tel:${CLINIC.phones[0]}`} aria-label="اتصل بالعيادة">
                 <Phone className="size-4" /> <span className="hidden sm:inline">اتصل</span>
               </a>
-            </Button>
-            <Button asChild variant="ghost" size="sm" className="rounded-2xl">
-              <Link to="/admin">الإدارة</Link>
             </Button>
           </div>
         </div>
@@ -363,7 +374,10 @@ function HomePage() {
       </main>
 
       <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
-        VetOna — Veterinary clinic · جميع الحقوق محفوظة
+        <p>VetOna — Veterinary clinic · جميع الحقوق محفوظة</p>
+        <Link to="/admin" className="mt-2 inline-block text-[10px] opacity-45 transition-opacity hover:opacity-80">
+          دخول الموظفين
+        </Link>
       </footer>
     </div>
   );

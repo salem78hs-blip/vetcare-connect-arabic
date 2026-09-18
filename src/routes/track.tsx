@@ -187,7 +187,10 @@ function TrackPage() {
 
       <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
         <Phone className="mx-auto mb-2 size-4 text-primary" />
-        VetOna — Veterinary clinic
+        <p>VetOna — Veterinary clinic</p>
+        <Link to="/admin" className="mt-2 inline-block text-[10px] opacity-45 transition-opacity hover:opacity-80">
+          دخول الموظفين
+        </Link>
       </footer>
     </div>
   );

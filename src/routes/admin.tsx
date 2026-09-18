@@ -64,6 +64,8 @@ export const Route = createFileRoute("/admin")({
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "لوحة الإدارة | VetOna" },
       { property: "og:description", content: "متابعة الحجوزات والمنتجات والطلبات." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AdminPage,
@@ -235,9 +237,12 @@ function AdminDashboard({ passcode }: { passcode: string }) {
                       <Row
                         label="خطة التطعيم"
                         value={
-                          b.plan && b.plan.doses.length > 0
-                            ? `${b.plan.doses.length} جرعة — ${formatDate(b.plan.doses[0]!.date)}`
-                            : "غير محددة"
+                          (() => {
+                            const firstDose = b.plan?.doses[0];
+                            return firstDose
+                              ? `${b.plan?.doses.length ?? 0} جرعة — ${formatDate(firstDose.date)}`
+                              : "غير محددة";
+                          })()
                         }
                       />
                     </dl>
