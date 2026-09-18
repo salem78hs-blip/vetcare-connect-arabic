@@ -235,9 +235,12 @@ function AdminDashboard({ passcode }: { passcode: string }) {
                       <Row
                         label="خطة التطعيم"
                         value={
-                          b.plan && b.plan.doses.length > 0
-                            ? `${b.plan.doses.length} جرعة — ${formatDate(b.plan.doses[0]!.date)}`
-                            : "غير محددة"
+                          (() => {
+                            const firstDose = b.plan?.doses[0];
+                            return firstDose
+                              ? `${b.plan?.doses.length ?? 0} جرعة — ${formatDate(firstDose.date)}`
+                              : "غير محددة";
+                          })()
                         }
                       />
                     </dl>

@@ -4,7 +4,7 @@ export const CLINIC = {
   tagline: "Veterinary clinic",
   phones: ["07760198800", "07506041077"],
   phonesDisplay: ["0776 019 8800", "0750 604 1077"],
-  address: "المجموعة الثقافية — مدخل حي الأندلس",
+  address: "الحدباء سايدين البحرين",
   mapUrl: "https://maps.app.goo.gl/SsG2oowBgosxZckd9",
   instagram: "https://www.instagram.com/vetona_vet_clinic",
   tiktok: "https://www.tiktok.com/@vetona.clinic",
