@@ -5,6 +5,7 @@ import {
   CalendarX,
   Loader2,
   Lock,
+  MessageCircle,
   PackageOpen,
   Pencil,
   Plus,
@@ -39,6 +40,7 @@ import logo from "@/assets/vetona-logo.png.asset.json";
 import {
   formatDate,
   newId,
+  whatsappReminderUrl,
   type Booking,
   type VaccineDose,
 } from "@/lib/bookings";
@@ -254,6 +256,20 @@ function AdminDashboard({ passcode }: { passcode: string }) {
                         onClick={() => setEditingPlan(b)}
                       >
                         <Syringe className="size-4" /> خطة التطعيم
+                      </Button>
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 rounded-2xl sm:flex-none"
+                      >
+                        <a
+                          href={whatsappReminderUrl(b)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <MessageCircle className="size-4" /> إرسال تذكير واتساب
+                        </a>
                       </Button>
                       <Button
                         size="icon"
