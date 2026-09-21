@@ -576,7 +576,18 @@ function PlanDialog({
               size="sm"
               variant="outline"
               className="rounded-2xl"
-              onClick={() => setDoses((d) => [...d, { id: newId(), vaccine: "", date: "" }])}
+              onClick={() =>
+                setDoses((d) => [
+                  ...d,
+                  {
+                    id: newId(),
+                    vaccine: "",
+                    date: "",
+                    intervalMonths: DEFAULT_INTERVAL_MONTHS,
+                    nextDueDate: "",
+                  },
+                ])
+              }
             >
               <Plus className="size-4" /> إضافة جرعة
             </Button>
