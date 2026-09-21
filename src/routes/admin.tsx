@@ -38,6 +38,9 @@ import {
 import { animalLabel } from "@/lib/clinic";
 import logo from "@/assets/vetona-logo.png.asset.json";
 import {
+  DEFAULT_INTERVAL_MONTHS,
+  DOSE_INTERVALS,
+  addMonths,
   formatDate,
   newId,
   whatsappReminderUrl,
@@ -616,7 +619,49 @@ function PlanDialog({
                         id={`date-${d.id}`}
                         type="date"
                         value={d.date}
-                        onChange={(e) => update(d.id, { date: e.target.value })}
+                        onChange={(e) => {
+                          const date = e.target.value;
+                          const months = d.intervalMonths ?? DEFAULT_INTERVAL_MONTHS;
+                          update(d.id, {
+                            date,
+                            intervalMonths: months,
+                            nextDueDate: addMonths(date, months),
+                          });
+                        }}
+                        className="rounded-2xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>مدة التذكير القادم</Label>
+                      <Select
+                        value={String(d.intervalMonths ?? DEFAULT_INTERVAL_MONTHS)}
+                        onValueChange={(value) => {
+                          const months = Number(value);
+                          update(d.id, {
+                            intervalMonths: months,
+                            nextDueDate: addMonths(d.date, months),
+                          });
+                        }}
+                      >
+                        <SelectTrigger className="rounded-2xl">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DOSE_INTERVALS.map((opt) => (
+                            <SelectItem key={opt.value} value={String(opt.value)}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`next-${d.id}`}>الجرعة القادمة (تلقائي)</Label>
+                      <Input
+                        id={`next-${d.id}`}
+                        type="date"
+                        value={d.nextDueDate ?? ""}
+                        onChange={(e) => update(d.id, { nextDueDate: e.target.value })}
                         className="rounded-2xl"
                       />
                     </div>
