@@ -2,7 +2,30 @@ export type VaccineDose = {
   id: string;
   vaccine: string;
   date: string;
+  /** Booster interval in months (12 = yearly, 6 = half-yearly). */
+  intervalMonths?: number;
+  /** Auto-calculated next due date (YYYY-MM-DD). */
+  nextDueDate?: string;
 };
+
+export const DOSE_INTERVALS = [
+  { value: 12, label: "كل سنة (12 شهر)" },
+  { value: 6, label: "كل 6 أشهر" },
+  { value: 3, label: "كل 3 أشهر" },
+  { value: 1, label: "كل شهر" },
+] as const;
+
+export const DEFAULT_INTERVAL_MONTHS = 12;
+
+/** Adds whole months to a YYYY-MM-DD date, clamping to the end of the month. */
+export function addMonths(date: string, months: number) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return "";
+  const [y, m, d] = date.split("-").map(Number) as [number, number, number];
+  const target = new Date(Date.UTC(y, m - 1 + months, 1));
+  const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  target.setUTCDate(Math.min(d, lastDay));
+  return target.toISOString().slice(0, 10);
+}
 
 export type VaccinationPlan = {
   doses: VaccineDose[];

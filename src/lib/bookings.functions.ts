@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import type { Booking, BookingInput, VaccinationPlan } from "@/lib/bookings";
-import { normalizePhone } from "@/lib/bookings";
+import { DEFAULT_INTERVAL_MONTHS, addMonths, normalizePhone } from "@/lib/bookings";
 
 type Row = {
   id: string;
@@ -114,11 +114,22 @@ export const savePlan = createServerFn({ method: "POST" })
   .inputValidator((input: { passcode: string; id: string; plan: VaccinationPlan | null }) => {
     const id = String(input?.id ?? "");
     if (!id) throw new Error("حجز غير معروف");
-    const doses = (input?.plan?.doses ?? []).map((d) => ({
-      id: String(d.id ?? ""),
-      vaccine: String(d.vaccine ?? "").trim().slice(0, 60),
-      date: String(d.date ?? ""),
-    }));
+    const doses = (input?.plan?.doses ?? []).map((d) => {
+      const date = String(d.date ?? "");
+      const intervalMonths = [1, 3, 6, 12].includes(Number(d.intervalMonths))
+        ? Number(d.intervalMonths)
+        : DEFAULT_INTERVAL_MONTHS;
+      const nextDueDate = /^\d{4}-\d{2}-\d{2}$/.test(String(d.nextDueDate ?? ""))
+        ? String(d.nextDueDate)
+        : addMonths(date, intervalMonths);
+      return {
+        id: String(d.id ?? ""),
+        vaccine: String(d.vaccine ?? "").trim().slice(0, 60),
+        date,
+        intervalMonths,
+        nextDueDate,
+      };
+    });
     if (doses.some((d) => !d.vaccine || !/^\d{4}-\d{2}-\d{2}$/.test(d.date))) {
       throw new Error("أكمل نوع التطعيم وتاريخ كل جرعة");
     }
