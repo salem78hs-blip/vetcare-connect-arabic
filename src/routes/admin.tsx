@@ -47,7 +47,7 @@ import {
   type Booking,
   type VaccineDose,
 } from "@/lib/bookings";
-import { deleteBooking, listBookings, savePlan } from "@/lib/bookings.functions";
+import { deleteBooking, listBookings, savePlan, verifyPasscode } from "@/lib/bookings.functions";
 import {
   adminListProducts,
   deleteOrder,
@@ -84,7 +84,7 @@ function AdminPage() {
 }
 
 function PasscodeGate({ onUnlock }: { onUnlock: (code: string) => void }) {
-  const check = useServerFn(listBookings);
+  const check = useServerFn(verifyPasscode);
   const [code, setCode] = useState("");
   const [checking, setChecking] = useState(false);
 
@@ -92,10 +92,11 @@ function PasscodeGate({ onUnlock }: { onUnlock: (code: string) => void }) {
     e.preventDefault();
     setChecking(true);
     try {
-      await check({ data: { passcode: code } });
-      onUnlock(code);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "رمز الدخول غير صحيح");
+      const result = await check({ data: { passcode: code } });
+      if (result.ok) onUnlock(code);
+      else toast.error("رمز الدخول غير صحيح");
+    } catch {
+      toast.error("تعذّر التحقق، حاول مرة أخرى");
     } finally {
       setChecking(false);
     }
