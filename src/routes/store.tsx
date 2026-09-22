@@ -1,7 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Loader2, PackageOpen, Phone, ShoppingBag } from "lucide-react";
+import {
+  Check,
+  Loader2,
+  Minus,
+  PackageOpen,
+  Phone,
+  Plus,
+  ShoppingBag,
+  ShoppingCart,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -15,10 +25,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { listProducts, placeOrder } from "@/lib/store.functions";
 import { formatPrice, type Product } from "@/lib/store";
 import { CLINIC } from "@/lib/clinic";
+import { toWhatsappNumber } from "@/lib/bookings";
 import logo from "@/assets/vetona-logo.png.asset.json";
+
+type CartItem = { product: Product; quantity: number };
 
 export const Route = createFileRoute("/store")({
   head: () => ({
