@@ -94,6 +94,19 @@ export const lookupBookings = createServerFn({ method: "POST" })
     return (rows as Row[]).map(toBooking);
   });
 
+/** Checks the staff passcode without throwing, so a wrong code is a normal result. */
+export const verifyPasscode = createServerFn({ method: "POST" })
+  .inputValidator((input: { passcode: string }) => ({ passcode: String(input?.passcode ?? "") }))
+  .handler(async ({ data }) => {
+    const { assertAdminPasscode } = await import("@/lib/admin-passcode.server");
+    try {
+      assertAdminPasscode(data.passcode);
+      return { ok: true as const };
+    } catch {
+      return { ok: false as const };
+    }
+  });
+
 export const listBookings = createServerFn({ method: "POST" })
   .inputValidator((input: { passcode: string }) => ({ passcode: String(input?.passcode ?? "") }))
   .handler(async ({ data }) => {
