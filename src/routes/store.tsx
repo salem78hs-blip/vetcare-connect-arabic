@@ -237,9 +237,18 @@ function StorePage() {
                   <p className="mt-3 text-base font-extrabold text-primary">
                     {formatPrice(p.price)}
                   </p>
-                  <Button className="mt-4 w-full rounded-2xl" onClick={() => setSelected(p)}>
-                    <ShoppingBag className="size-4" /> اطلب الآن
-                  </Button>
+                  <div className="mt-4 grid gap-2">
+                    <Button className="w-full rounded-2xl" onClick={() => addToCart(p)}>
+                      <ShoppingCart className="size-4" /> أضف إلى السلة
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-2xl"
+                      onClick={() => setSelected(p)}
+                    >
+                      <ShoppingBag className="size-4" /> اطلب الآن
+                    </Button>
+                  </div>
                 </div>
               </article>
             ))}
