@@ -1,7 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Loader2, PackageOpen, Phone, ShoppingBag } from "lucide-react";
+import {
+  Check,
+  Loader2,
+  Minus,
+  PackageOpen,
+  Phone,
+  Plus,
+  ShoppingBag,
+  ShoppingCart,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -15,10 +25,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { listProducts, placeOrder } from "@/lib/store.functions";
 import { formatPrice, type Product } from "@/lib/store";
 import { CLINIC } from "@/lib/clinic";
+import { toWhatsappNumber } from "@/lib/bookings";
 import logo from "@/assets/vetona-logo.png.asset.json";
+
+type CartItem = { product: Product; quantity: number };
 
 export const Route = createFileRoute("/store")({
   head: () => ({
@@ -62,6 +83,64 @@ export const Route = createFileRoute("/store")({
 function StorePage() {
   const products = Route.useLoaderData();
   const [selected, setSelected] = useState<Product | null>(null);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+
+  const count = useMemo(() => cart.reduce((s, i) => s + i.quantity, 0), [cart]);
+  const total = useMemo(
+    () => cart.reduce((s, i) => s + i.product.price * i.quantity, 0),
+    [cart],
+  );
+
+  function addToCart(product: Product) {
+    setCart((prev) => {
+      const found = prev.find((i) => i.product.id === product.id);
+      if (found)
+        return prev.map((i) =>
+          i.product.id === product.id ? { ...i, quantity: Math.min(99, i.quantity + 1) } : i,
+        );
+      return [...prev, { product, quantity: 1 }];
+    });
+    toast.success(`تمت إضافة ${product.name} إلى السلة`);
+  }
+
+  function changeQty(id: string, delta: number) {
+    setCart((prev) =>
+      prev
+        .map((i) =>
+          i.product.id === id
+            ? { ...i, quantity: Math.min(99, Math.max(0, i.quantity + delta)) }
+            : i,
+        )
+        .filter((i) => i.quantity > 0),
+    );
+  }
+
+  function removeItem(id: string) {
+    setCart((prev) => prev.filter((i) => i.product.id !== id));
+  }
+
+  function orderViaWhatsapp() {
+    if (cart.length === 0) return;
+    const lines = [
+      `مرحباً ${CLINIC.name} 🐾`,
+      "أرغب بطلب المنتجات التالية:",
+      "",
+      ...cart.map(
+        (i, idx) =>
+          `${idx + 1}) ${i.product.name} × ${i.quantity} — ${formatPrice(
+            i.product.price * i.quantity,
+          )}`,
+      ),
+      "",
+      `الإجمالي: ${formatPrice(total)}`,
+    ];
+    const url = `https://wa.me/${toWhatsappNumber(CLINIC.phones[0])}?text=${encodeURIComponent(
+      lines.join("\n"),
+    )}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -92,6 +171,20 @@ function StorePage() {
               <a href={`tel:${CLINIC.phones[0]}`} aria-label="اتصل بالعيادة">
                 <Phone className="size-4" />
               </a>
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="relative rounded-2xl"
+              onClick={() => setCartOpen(true)}
+              aria-label="سلة المشتريات"
+            >
+              <ShoppingCart className="size-4" />
+              {count > 0 && (
+                <span className="absolute -top-1.5 -left-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                  {count}
+                </span>
+              )}
             </Button>
           </div>
         </div>
@@ -144,9 +237,18 @@ function StorePage() {
                   <p className="mt-3 text-base font-extrabold text-primary">
                     {formatPrice(p.price)}
                   </p>
-                  <Button className="mt-4 w-full rounded-2xl" onClick={() => setSelected(p)}>
-                    <ShoppingBag className="size-4" /> اطلب الآن
-                  </Button>
+                  <div className="mt-4 grid gap-2">
+                    <Button className="w-full rounded-2xl" onClick={() => addToCart(p)}>
+                      <ShoppingCart className="size-4" /> أضف إلى السلة
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-2xl"
+                      onClick={() => setSelected(p)}
+                    >
+                      <ShoppingBag className="size-4" /> اطلب الآن
+                    </Button>
+                  </div>
                 </div>
               </article>
             ))}
@@ -164,6 +266,103 @@ function StorePage() {
       </footer>
 
       <OrderDialog product={selected} onClose={() => setSelected(null)} />
+
+      <Sheet open={cartOpen} onOpenChange={setCartOpen}>
+        <SheetContent side="left" className="flex w-full flex-col sm:max-w-sm">
+          <SheetHeader className="text-right">
+            <SheetTitle>سلة المشتريات</SheetTitle>
+            <SheetDescription>
+              راجع منتجاتك ثم أرسل الطلب إلى العيادة عبر واتساب.
+            </SheetDescription>
+          </SheetHeader>
+
+          {cart.length === 0 ? (
+            <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+              <span className="flex size-14 items-center justify-center rounded-3xl bg-secondary text-primary">
+                <ShoppingCart className="size-7" />
+              </span>
+              <p className="mt-4 text-sm font-bold">السلة فارغة</p>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                أضف منتجات من المتجر لتظهر هنا.
+              </p>
+            </div>
+          ) : (
+            <div className="flex-1 space-y-3 overflow-y-auto px-4">
+              {cart.map((item) => (
+                <div key={item.product.id} className="card-soft p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">{item.product.name}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {formatPrice(item.product.price)}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 rounded-xl text-muted-foreground"
+                      onClick={() => removeItem(item.product.id)}
+                      aria-label={`إزالة ${item.product.name}`}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="size-8 rounded-xl"
+                        onClick={() => changeQty(item.product.id, -1)}
+                        aria-label="تقليل الكمية"
+                      >
+                        <Minus className="size-4" />
+                      </Button>
+                      <span className="w-6 text-center text-sm font-bold">{item.quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="size-8 rounded-xl"
+                        onClick={() => changeQty(item.product.id, 1)}
+                        aria-label="زيادة الكمية"
+                      >
+                        <Plus className="size-4" />
+                      </Button>
+                    </div>
+                    <span className="text-sm font-extrabold text-primary">
+                      {formatPrice(item.product.price * item.quantity)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <SheetFooter className="gap-2">
+            {cart.length > 0 && (
+              <p className="rounded-2xl bg-muted p-3 text-center text-sm font-bold">
+                الإجمالي: {formatPrice(total)}
+              </p>
+            )}
+            <Button
+              className="w-full rounded-2xl"
+              disabled={cart.length === 0}
+              onClick={orderViaWhatsapp}
+            >
+              <ShoppingBag className="size-4" /> اطلب عبر واتساب
+            </Button>
+            {cart.length > 0 && (
+              <Button
+                variant="ghost"
+                className="w-full rounded-2xl text-muted-foreground"
+                onClick={() => setCart([])}
+              >
+                تفريغ السلة
+              </Button>
+            )}
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
