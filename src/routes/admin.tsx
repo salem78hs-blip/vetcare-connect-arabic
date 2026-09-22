@@ -47,7 +47,7 @@ import {
   type Booking,
   type VaccineDose,
 } from "@/lib/bookings";
-import { deleteBooking, listBookings, savePlan } from "@/lib/bookings.functions";
+import { deleteBooking, listBookings, savePlan, verifyPasscode } from "@/lib/bookings.functions";
 import {
   adminListProducts,
   deleteOrder,
