@@ -83,6 +83,64 @@ export const Route = createFileRoute("/store")({
 function StorePage() {
   const products = Route.useLoaderData();
   const [selected, setSelected] = useState<Product | null>(null);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+
+  const count = useMemo(() => cart.reduce((s, i) => s + i.quantity, 0), [cart]);
+  const total = useMemo(
+    () => cart.reduce((s, i) => s + i.product.price * i.quantity, 0),
+    [cart],
+  );
+
+  function addToCart(product: Product) {
+    setCart((prev) => {
+      const found = prev.find((i) => i.product.id === product.id);
+      if (found)
+        return prev.map((i) =>
+          i.product.id === product.id ? { ...i, quantity: Math.min(99, i.quantity + 1) } : i,
+        );
+      return [...prev, { product, quantity: 1 }];
+    });
+    toast.success(`تمت إضافة ${product.name} إلى السلة`);
+  }
+
+  function changeQty(id: string, delta: number) {
+    setCart((prev) =>
+      prev
+        .map((i) =>
+          i.product.id === id
+            ? { ...i, quantity: Math.min(99, Math.max(0, i.quantity + delta)) }
+            : i,
+        )
+        .filter((i) => i.quantity > 0),
+    );
+  }
+
+  function removeItem(id: string) {
+    setCart((prev) => prev.filter((i) => i.product.id !== id));
+  }
+
+  function orderViaWhatsapp() {
+    if (cart.length === 0) return;
+    const lines = [
+      `مرحباً ${CLINIC.name} 🐾`,
+      "أرغب بطلب المنتجات التالية:",
+      "",
+      ...cart.map(
+        (i, idx) =>
+          `${idx + 1}) ${i.product.name} × ${i.quantity} — ${formatPrice(
+            i.product.price * i.quantity,
+          )}`,
+      ),
+      "",
+      `الإجمالي: ${formatPrice(total)}`,
+    ];
+    const url = `https://wa.me/${toWhatsappNumber(CLINIC.phones[0])}?text=${encodeURIComponent(
+      lines.join("\n"),
+    )}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
 
   return (
     <div className="min-h-screen bg-background">
