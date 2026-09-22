@@ -172,6 +172,20 @@ function StorePage() {
                 <Phone className="size-4" />
               </a>
             </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="relative rounded-2xl"
+              onClick={() => setCartOpen(true)}
+              aria-label="سلة المشتريات"
+            >
+              <ShoppingCart className="size-4" />
+              {count > 0 && (
+                <span className="absolute -top-1.5 -left-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                  {count}
+                </span>
+              )}
+            </Button>
           </div>
         </div>
       </header>
