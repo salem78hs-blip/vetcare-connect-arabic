@@ -375,9 +375,6 @@ function HomePage() {
 
       <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
         <p>VetOna — Veterinary clinic · جميع الحقوق محفوظة</p>
-        <Link to="/admin" className="mt-2 inline-block text-[10px] opacity-45 transition-opacity hover:opacity-80">
-          دخول الموظفين
-        </Link>
       </footer>
     </div>
   );

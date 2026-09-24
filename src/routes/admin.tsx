@@ -195,21 +195,24 @@ function AdminDashboard({ passcode }: { passcode: string }) {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 pb-20">
-        <Tabs defaultValue="bookings">
-          <TabsList className="rounded-2xl">
-            <TabsTrigger value="bookings" className="rounded-2xl">
-              الحجوزات
+        <Tabs defaultValue="vaccinations">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl sm:grid-cols-4">
+            <TabsTrigger value="vaccinations" className="rounded-2xl">
+              التطعيمات
             </TabsTrigger>
-            <TabsTrigger value="products" className="rounded-2xl">
-              المنتجات
+            <TabsTrigger value="store" className="rounded-2xl">
+              المتجر
             </TabsTrigger>
-            <TabsTrigger value="orders" className="rounded-2xl">
-              الطلبات
+            <TabsTrigger value="records" className="rounded-2xl">
+              سجلات الحيوانات
+            </TabsTrigger>
+            <TabsTrigger value="whatsapp" className="rounded-2xl">
+              إعدادات واتساب
             </TabsTrigger>
           </TabsList>
 
-          {/* ---------- bookings ---------- */}
-          <TabsContent value="bookings" className="mt-5">
+          {/* ---------- vaccinations ---------- */}
+          <TabsContent value="vaccinations" className="mt-5">
             {bookings === null ? (
               <SkeletonList />
             ) : bookings.length === 0 ? (
