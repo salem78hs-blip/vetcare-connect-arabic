@@ -260,9 +260,6 @@ function StorePage() {
         <p>
           VetOna — Veterinary clinic · للاستفسار <span dir="ltr">{CLINIC.phonesDisplay[0]}</span>
         </p>
-        <Link to="/admin" className="mt-2 inline-block text-[10px] opacity-45 transition-opacity hover:opacity-80">
-          دخول الموظفين
-        </Link>
       </footer>
 
       <OrderDialog product={selected} onClose={() => setSelected(null)} />
