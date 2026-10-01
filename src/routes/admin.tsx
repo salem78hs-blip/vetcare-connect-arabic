@@ -57,6 +57,7 @@ import {
   updateOrderStatus,
 } from "@/lib/store.functions";
 import { ORDER_STATUSES, formatPrice, orderStatusLabel, type Order, type Product } from "@/lib/store";
+import { PetRecords, WhatsappSettings } from "@/components/admin-extra-tabs";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -303,7 +304,8 @@ function AdminDashboard({ passcode }: { passcode: string }) {
           </TabsContent>
 
           {/* ---------- products ---------- */}
-          <TabsContent value="products" className="mt-5">
+          <TabsContent value="store" className="mt-5">
+            <h2 className="mb-4 text-lg font-extrabold">منتجات المتجر</h2>
             <div className="mb-4 flex justify-end">
               <Button className="rounded-2xl" onClick={() => setEditingProduct("new")}>
                 <Plus className="size-4" /> إضافة منتج
@@ -372,10 +374,10 @@ function AdminDashboard({ passcode }: { passcode: string }) {
                 ))}
               </div>
             )}
-          </TabsContent>
 
-          {/* ---------- orders ---------- */}
-          <TabsContent value="orders" className="mt-5">
+            {/* ---------- orders ---------- */}
+            <section className="mt-10">
+            <h2 className="mb-4 text-lg font-extrabold">طلبات المتجر</h2>
             {orders === null ? (
               <SkeletonList />
             ) : orders.length === 0 ? (
@@ -453,6 +455,15 @@ function AdminDashboard({ passcode }: { passcode: string }) {
                 ))}
               </div>
             )}
+            </section>
+          </TabsContent>
+
+          <TabsContent value="records" className="mt-5">
+            <PetRecords bookings={bookings} />
+          </TabsContent>
+
+          <TabsContent value="whatsapp" className="mt-5">
+            <WhatsappSettings passcode={passcode} />
           </TabsContent>
         </Tabs>
       </main>
