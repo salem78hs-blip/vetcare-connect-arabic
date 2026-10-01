@@ -51,7 +51,7 @@ export const saveWhatsappSettings = createServerFn({ method: "POST" })
       twilio_from_number: data.fromNumber,
       updated_at: new Date().toISOString(),
     };
-    if (data.authToken) payload.twilio_auth_token = data.authToken;
+    if (data.authToken) payload["twilio_auth_token"] = data.authToken;
     const { error } = await db.from("whatsapp_settings" as never).upsert(payload as never);
     if (error) throw new Error("تعذّر حفظ الإعدادات");
     return { ok: true };

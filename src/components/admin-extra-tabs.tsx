@@ -95,7 +95,10 @@ export function WhatsappSettings({ passcode }: { passcode: string }) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!hasToken && !token.trim()) return toast.error("أدخل Auth Token");
+    if (!hasToken && !token.trim()) {
+      toast.error("أدخل Auth Token");
+      return;
+    }
     setSaving(true);
     try {
       await save({ data: { passcode, accountSid: sid, authToken: token, fromNumber: from } });
