@@ -136,6 +136,30 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_settings: {
+        Row: {
+          id: number
+          twilio_account_sid: string | null
+          twilio_auth_token: string | null
+          twilio_from_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          twilio_account_sid?: string | null
+          twilio_auth_token?: string | null
+          twilio_from_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          twilio_account_sid?: string | null
+          twilio_auth_token?: string | null
+          twilio_from_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
