@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -132,6 +132,30 @@ export type Database = {
           is_available?: boolean
           name?: string
           price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      whatsapp_settings: {
+        Row: {
+          id: number
+          twilio_account_sid: string | null
+          twilio_auth_token: string | null
+          twilio_from_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          twilio_account_sid?: string | null
+          twilio_auth_token?: string | null
+          twilio_from_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          twilio_account_sid?: string | null
+          twilio_auth_token?: string | null
+          twilio_from_number?: string | null
           updated_at?: string
         }
         Relationships: []
