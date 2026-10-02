@@ -181,7 +181,7 @@ function TrackPage() {
         )}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          للاستفسار: <span dir="ltr">0776 019 8800</span>
+          للاستفسار: <span dir="ltr">0774 766 9510</span>
         </p>
       </main>
 
