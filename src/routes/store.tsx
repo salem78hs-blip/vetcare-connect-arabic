@@ -502,3 +502,176 @@ function OrderDialog({ product, onClose }: { product: Product | null; onClose: (
     </Dialog>
   );
 }
+
+function openOrderWhatsapp(
+  popup: Window | null,
+  order: {
+    buyerName: string;
+    phone: string;
+    items: { name: string; quantity: number; amount: number }[];
+    total: number;
+  },
+) {
+  const lines = [
+    `مرحباً ${CLINIC.name} 🐾`,
+    "أرغب بإتمام الطلب التالي:",
+    "",
+    `الاسم: ${order.buyerName}`,
+    `الهاتف: ${order.phone}`,
+    "",
+    ...order.items.map(
+      (i, idx) => `${idx + 1}) ${i.name} × ${i.quantity} — ${formatPrice(i.amount)}`,
+    ),
+    "",
+    `الإجمالي: ${formatPrice(order.total)}`,
+  ];
+  const url = `https://wa.me/${toWhatsappNumber(CLINIC.phones[0])}?text=${encodeURIComponent(
+    lines.join("\n"),
+  )}`;
+  if (popup && !popup.closed) {
+    popup.location.href = url;
+    return;
+  }
+  const win = window.open(url, "_blank", "noopener,noreferrer");
+  if (!win) window.location.href = url;
+}
+
+function CheckoutDialog({
+  open,
+  cart,
+  total,
+  onClose,
+  onPlaced,
+}: {
+  open: boolean;
+  cart: CartItem[];
+  total: number;
+  onClose: () => void;
+  onPlaced: () => void;
+}) {
+  const send = useServerFn(placeCartOrder);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [note, setNote] = useState("");
+  const [sending, setSending] = useState(false);
+
+  function close() {
+    onClose();
+    setName("");
+    setPhone("");
+    setNote("");
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (cart.length === 0) return;
+    setSending(true);
+    const popup = window.open("", "_blank");
+    try {
+      await send({
+        data: {
+          customerName: name,
+          phone,
+          note,
+          items: cart.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+        },
+      });
+      openOrderWhatsapp(popup, {
+        buyerName: name,
+        phone,
+        items: cart.map((i) => ({
+          name: i.product.name,
+          quantity: i.quantity,
+          amount: i.product.price * i.quantity,
+        })),
+        total,
+      });
+      toast.success("تم استلام طلبك، أكمل الإرسال من واتساب");
+      onPlaced();
+      close();
+    } catch (error) {
+      popup?.close();
+      toast.error(error instanceof Error ? error.message : "تعذّر إرسال الطلب");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(next) => !next && close()}>
+      <DialogContent className="max-w-md rounded-3xl">
+        <DialogHeader>
+          <DialogTitle className="text-right">إكمال الطلب</DialogTitle>
+        </DialogHeader>
+
+        {cart.length > 0 && (
+          <p className="rounded-2xl bg-muted p-3 text-center text-sm font-bold">
+            الإجمالي: {formatPrice(total)}
+          </p>
+        )}
+
+        <form onSubmit={submit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="checkoutName">الاسم</Label>
+            <Input
+              id="checkoutName"
+              value={name}
+              maxLength={60}
+              onChange={(e) => setName(e.target.value)}
+              className="rounded-2xl"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="checkoutPhone">رقم الهاتف</Label>
+            <Input
+              id="checkoutPhone"
+              inputMode="tel"
+              dir="ltr"
+              placeholder="07XXXXXXXXX"
+              maxLength={11}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+              className="rounded-2xl"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="checkoutNote">
+              ملاحظة <span className="text-muted-foreground">(اختياري)</span>
+            </Label>
+            <Textarea
+              id="checkoutNote"
+              value={note}
+              maxLength={200}
+              onChange={(e) => setNote(e.target.value)}
+              className="rounded-2xl"
+            />
+          </div>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            سيتم حفظ طلبك لدى العيادة ثم فتح واتساب برسالة جاهزة تحتوي تفاصيل الطلب — أرسلها
+            لإتمام الطلب.
+          </p>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" className="rounded-2xl" onClick={close}>
+              إلغاء
+            </Button>
+            <Button
+              type="submit"
+              disabled={sending || cart.length === 0}
+              className="rounded-2xl"
+            >
+              {sending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" /> جارٍ الإرسال…
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="size-4" /> إكمال الطلب عبر واتساب
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
