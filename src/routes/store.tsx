@@ -33,7 +33,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { listProducts, placeOrder } from "@/lib/store.functions";
+import { listProducts, placeCartOrder, placeOrder } from "@/lib/store.functions";
 import { formatPrice, type Product } from "@/lib/store";
 import { CLINIC } from "@/lib/clinic";
 import { toWhatsappNumber } from "@/lib/bookings";
@@ -85,6 +85,7 @@ function StorePage() {
   const [selected, setSelected] = useState<Product | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const count = useMemo(() => cart.reduce((s, i) => s + i.quantity, 0), [cart]);
   const total = useMemo(
@@ -120,26 +121,12 @@ function StorePage() {
     setCart((prev) => prev.filter((i) => i.product.id !== id));
   }
 
-  function orderViaWhatsapp() {
+  function startCheckout() {
     if (cart.length === 0) return;
-    const lines = [
-      `مرحباً ${CLINIC.name} 🐾`,
-      "أرغب بطلب المنتجات التالية:",
-      "",
-      ...cart.map(
-        (i, idx) =>
-          `${idx + 1}) ${i.product.name} × ${i.quantity} — ${formatPrice(
-            i.product.price * i.quantity,
-          )}`,
-      ),
-      "",
-      `الإجمالي: ${formatPrice(total)}`,
-    ];
-    const url = `https://wa.me/${toWhatsappNumber(CLINIC.phones[0])}?text=${encodeURIComponent(
-      lines.join("\n"),
-    )}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    setCartOpen(false);
+    setCheckoutOpen(true);
   }
+
 
 
   return (
@@ -264,6 +251,15 @@ function StorePage() {
 
       <OrderDialog product={selected} onClose={() => setSelected(null)} />
 
+      <CheckoutDialog
+        open={checkoutOpen}
+        cart={cart}
+        total={total}
+        onClose={() => setCheckoutOpen(false)}
+        onPlaced={() => setCart([])}
+      />
+
+
       <Sheet open={cartOpen} onOpenChange={setCartOpen}>
         <SheetContent side="left" className="flex w-full flex-col sm:max-w-sm">
           <SheetHeader className="text-right">
@@ -344,9 +340,9 @@ function StorePage() {
             <Button
               className="w-full rounded-2xl"
               disabled={cart.length === 0}
-              onClick={orderViaWhatsapp}
+              onClick={startCheckout}
             >
-              <ShoppingBag className="size-4" /> اطلب عبر واتساب
+              <ShoppingBag className="size-4" /> إكمال الطلب
             </Button>
             {cart.length > 0 && (
               <Button
