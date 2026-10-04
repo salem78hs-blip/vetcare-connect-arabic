@@ -381,14 +381,23 @@ function OrderDialog({ product, onClose }: { product: Product | null; onClose: (
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!product) return;
+    const qty = Math.max(1, Math.min(99, quantity || 1));
     setSending(true);
+    const popup = window.open("", "_blank");
     try {
       await send({
-        data: { productId: product.id, customerName: name, phone, quantity, note },
+        data: { productId: product.id, customerName: name, phone, quantity: qty, note },
+      });
+      openOrderWhatsapp(popup, {
+        buyerName: name,
+        phone,
+        items: [{ name: product.name, quantity: qty, amount: product.price * qty }],
+        total: product.price * qty,
       });
       setDone(true);
       toast.success("تم إرسال الطلب");
     } catch (error) {
+      popup?.close();
       toast.error(error instanceof Error ? error.message : "تعذّر إرسال الطلب");
     } finally {
       setSending(false);
