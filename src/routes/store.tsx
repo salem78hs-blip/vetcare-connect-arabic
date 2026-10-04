@@ -33,7 +33,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { listProducts, placeOrder } from "@/lib/store.functions";
+import { listProducts, placeCartOrder, placeOrder } from "@/lib/store.functions";
 import { formatPrice, type Product } from "@/lib/store";
 import { CLINIC } from "@/lib/clinic";
 import { toWhatsappNumber } from "@/lib/bookings";
@@ -85,6 +85,7 @@ function StorePage() {
   const [selected, setSelected] = useState<Product | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const count = useMemo(() => cart.reduce((s, i) => s + i.quantity, 0), [cart]);
   const total = useMemo(
@@ -120,26 +121,12 @@ function StorePage() {
     setCart((prev) => prev.filter((i) => i.product.id !== id));
   }
 
-  function orderViaWhatsapp() {
+  function startCheckout() {
     if (cart.length === 0) return;
-    const lines = [
-      `مرحباً ${CLINIC.name} 🐾`,
-      "أرغب بطلب المنتجات التالية:",
-      "",
-      ...cart.map(
-        (i, idx) =>
-          `${idx + 1}) ${i.product.name} × ${i.quantity} — ${formatPrice(
-            i.product.price * i.quantity,
-          )}`,
-      ),
-      "",
-      `الإجمالي: ${formatPrice(total)}`,
-    ];
-    const url = `https://wa.me/${toWhatsappNumber(CLINIC.phones[0])}?text=${encodeURIComponent(
-      lines.join("\n"),
-    )}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    setCartOpen(false);
+    setCheckoutOpen(true);
   }
+
 
 
   return (
@@ -264,6 +251,15 @@ function StorePage() {
 
       <OrderDialog product={selected} onClose={() => setSelected(null)} />
 
+      <CheckoutDialog
+        open={checkoutOpen}
+        cart={cart}
+        total={total}
+        onClose={() => setCheckoutOpen(false)}
+        onPlaced={() => setCart([])}
+      />
+
+
       <Sheet open={cartOpen} onOpenChange={setCartOpen}>
         <SheetContent side="left" className="flex w-full flex-col sm:max-w-sm">
           <SheetHeader className="text-right">
@@ -344,9 +340,9 @@ function StorePage() {
             <Button
               className="w-full rounded-2xl"
               disabled={cart.length === 0}
-              onClick={orderViaWhatsapp}
+              onClick={startCheckout}
             >
-              <ShoppingBag className="size-4" /> اطلب عبر واتساب
+              <ShoppingBag className="size-4" /> إكمال الطلب
             </Button>
             {cart.length > 0 && (
               <Button
@@ -385,14 +381,23 @@ function OrderDialog({ product, onClose }: { product: Product | null; onClose: (
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!product) return;
+    const qty = Math.max(1, Math.min(99, quantity || 1));
     setSending(true);
+    const popup = window.open("", "_blank");
     try {
       await send({
-        data: { productId: product.id, customerName: name, phone, quantity, note },
+        data: { productId: product.id, customerName: name, phone, quantity: qty, note },
+      });
+      openOrderWhatsapp(popup, {
+        buyerName: name,
+        phone,
+        items: [{ name: product.name, quantity: qty, amount: product.price * qty }],
+        total: product.price * qty,
       });
       setDone(true);
       toast.success("تم إرسال الطلب");
     } catch (error) {
+      popup?.close();
       toast.error(error instanceof Error ? error.message : "تعذّر إرسال الطلب");
     } finally {
       setSending(false);
@@ -493,6 +498,179 @@ function OrderDialog({ product, onClose }: { product: Product | null; onClose: (
             </DialogFooter>
           </form>
         )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function openOrderWhatsapp(
+  popup: Window | null,
+  order: {
+    buyerName: string;
+    phone: string;
+    items: { name: string; quantity: number; amount: number }[];
+    total: number;
+  },
+) {
+  const lines = [
+    `مرحباً ${CLINIC.name} 🐾`,
+    "أرغب بإتمام الطلب التالي:",
+    "",
+    `الاسم: ${order.buyerName}`,
+    `الهاتف: ${order.phone}`,
+    "",
+    ...order.items.map(
+      (i, idx) => `${idx + 1}) ${i.name} × ${i.quantity} — ${formatPrice(i.amount)}`,
+    ),
+    "",
+    `الإجمالي: ${formatPrice(order.total)}`,
+  ];
+  const url = `https://wa.me/${toWhatsappNumber(CLINIC.phones[0])}?text=${encodeURIComponent(
+    lines.join("\n"),
+  )}`;
+  if (popup && !popup.closed) {
+    popup.location.href = url;
+    return;
+  }
+  const win = window.open(url, "_blank", "noopener,noreferrer");
+  if (!win) window.location.href = url;
+}
+
+function CheckoutDialog({
+  open,
+  cart,
+  total,
+  onClose,
+  onPlaced,
+}: {
+  open: boolean;
+  cart: CartItem[];
+  total: number;
+  onClose: () => void;
+  onPlaced: () => void;
+}) {
+  const send = useServerFn(placeCartOrder);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [note, setNote] = useState("");
+  const [sending, setSending] = useState(false);
+
+  function close() {
+    onClose();
+    setName("");
+    setPhone("");
+    setNote("");
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (cart.length === 0) return;
+    setSending(true);
+    const popup = window.open("", "_blank");
+    try {
+      await send({
+        data: {
+          customerName: name,
+          phone,
+          note,
+          items: cart.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+        },
+      });
+      openOrderWhatsapp(popup, {
+        buyerName: name,
+        phone,
+        items: cart.map((i) => ({
+          name: i.product.name,
+          quantity: i.quantity,
+          amount: i.product.price * i.quantity,
+        })),
+        total,
+      });
+      toast.success("تم استلام طلبك، أكمل الإرسال من واتساب");
+      onPlaced();
+      close();
+    } catch (error) {
+      popup?.close();
+      toast.error(error instanceof Error ? error.message : "تعذّر إرسال الطلب");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(next) => !next && close()}>
+      <DialogContent className="max-w-md rounded-3xl">
+        <DialogHeader>
+          <DialogTitle className="text-right">إكمال الطلب</DialogTitle>
+        </DialogHeader>
+
+        {cart.length > 0 && (
+          <p className="rounded-2xl bg-muted p-3 text-center text-sm font-bold">
+            الإجمالي: {formatPrice(total)}
+          </p>
+        )}
+
+        <form onSubmit={submit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="checkoutName">الاسم</Label>
+            <Input
+              id="checkoutName"
+              value={name}
+              maxLength={60}
+              onChange={(e) => setName(e.target.value)}
+              className="rounded-2xl"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="checkoutPhone">رقم الهاتف</Label>
+            <Input
+              id="checkoutPhone"
+              inputMode="tel"
+              dir="ltr"
+              placeholder="07XXXXXXXXX"
+              maxLength={11}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+              className="rounded-2xl"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="checkoutNote">
+              ملاحظة <span className="text-muted-foreground">(اختياري)</span>
+            </Label>
+            <Textarea
+              id="checkoutNote"
+              value={note}
+              maxLength={200}
+              onChange={(e) => setNote(e.target.value)}
+              className="rounded-2xl"
+            />
+          </div>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            سيتم حفظ طلبك لدى العيادة ثم فتح واتساب برسالة جاهزة تحتوي تفاصيل الطلب — أرسلها
+            لإتمام الطلب.
+          </p>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" className="rounded-2xl" onClick={close}>
+              إلغاء
+            </Button>
+            <Button
+              type="submit"
+              disabled={sending || cart.length === 0}
+              className="rounded-2xl"
+            >
+              {sending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" /> جارٍ الإرسال…
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="size-4" /> إكمال الطلب عبر واتساب
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

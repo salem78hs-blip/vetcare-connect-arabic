@@ -125,6 +125,70 @@ export const placeOrder = createServerFn({ method: "POST" })
     return { ok: true, productName: p.name, total: p.price * data.quantity };
   });
 
+export const placeCartOrder = createServerFn({ method: "POST" })
+  .inputValidator(
+    (input: {
+      customerName: string;
+      phone: string;
+      note?: string;
+      items: { productId: string; quantity: number }[];
+    }) => {
+      const customerName = String(input?.customerName ?? "").trim();
+      const phone = normalizePhone(String(input?.phone ?? ""));
+      const note = String(input?.note ?? "").trim();
+      const items = Array.isArray(input?.items) ? input.items : [];
+
+      if (customerName.length < 2) throw new Error("اكتب اسمك");
+      if (!/^07\d{9}$/.test(phone)) throw new Error("رقم الهاتف يجب أن يكون 11 رقماً ويبدأ بـ 07");
+      if (items.length === 0) throw new Error("السلة فارغة");
+
+      const clean = items.slice(0, 20).map((i) => ({
+        productId: String(i?.productId ?? ""),
+        quantity: Math.floor(Number(i?.quantity ?? 1)),
+      }));
+      if (clean.some((i) => !i.productId || i.quantity < 1 || i.quantity > 99))
+        throw new Error("الكمية غير صحيحة");
+
+      return {
+        customerName: customerName.slice(0, 60),
+        phone,
+        note: note.slice(0, 200),
+        items: clean,
+      };
+    },
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const ids = [...new Set(data.items.map((i) => i.productId))];
+    const { data: rows, error } = await supabaseAdmin
+      .from("products")
+      .select(PRODUCT_COLUMNS)
+      .in("id", ids)
+      .eq("is_available", true);
+
+    if (error || !rows || rows.length !== ids.length)
+      throw new Error("بعض المنتجات غير متوفرة حالياً، حدّث الصفحة وحاول مجدداً");
+
+    const products = new Map((rows as ProductRow[]).map((r) => [r.id, toProduct(r)]));
+    const orderRows = data.items.map((i) => {
+      const p = products.get(i.productId)!;
+      return {
+        product_id: p.id,
+        product_name: p.name,
+        unit_price: p.price,
+        quantity: i.quantity,
+        customer_name: data.customerName,
+        phone: data.phone,
+        note: data.note || null,
+      };
+    });
+    const total = orderRows.reduce((s, r) => s + Number(r.unit_price) * r.quantity, 0);
+
+    const { error: insertError } = await supabaseAdmin.from("orders").insert(orderRows);
+    if (insertError) throw new Error("تعذّر إرسال الطلب، حاول مرة أخرى");
+    return { ok: true, total };
+  });
+
 /* ---------------- admin (passcode) ---------------- */
 
 async function guard(passcode: string) {
