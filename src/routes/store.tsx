@@ -33,7 +33,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { listProducts, placeCartOrder, placeOrder } from "@/lib/store.functions";
+import { listCategories, listProducts, placeCartOrder, placeOrder } from "@/lib/store.functions";
 import { formatPrice, type Product } from "@/lib/store";
 import { CLINIC } from "@/lib/clinic";
 import { toWhatsappNumber } from "@/lib/bookings";
@@ -59,7 +59,10 @@ export const Route = createFileRoute("/store")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  loader: () => listProducts(),
+  loader: async () => {
+    const [products, categories] = await Promise.all([listProducts(), listCategories()]);
+    return { products, categories };
+  },
   errorComponent: () => (
     <div className="mx-auto max-w-md px-4 py-20 text-center">
       <h1 className="text-lg font-bold">تعذّر تحميل المتجر</h1>
@@ -81,7 +84,12 @@ export const Route = createFileRoute("/store")({
 });
 
 function StorePage() {
-  const products = Route.useLoaderData();
+  const { products: allProducts, categories } = Route.useLoaderData();
+  const [activeCat, setActiveCat] = useState<string>("all");
+  const products = useMemo(
+    () => (activeCat === "all" ? allProducts : allProducts.filter((p) => p.categoryId === activeCat)),
+    [allProducts, activeCat],
+  );
   const [selected, setSelected] = useState<Product | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
@@ -183,7 +191,34 @@ function StorePage() {
           اختر المنتج المناسب لقطتك وأرسل الطلب، وسنتواصل معك لتأكيد التفاصيل والتسليم.
         </p>
 
-        {products.length === 0 ? (
+        {allProducts.length > 0 && categories.length > 0 && (
+          <div className="-mx-4 mt-6 flex gap-2 overflow-x-auto px-4 pb-1">
+            {[{ id: "all", name: "الكل" }, ...categories].map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setActiveCat(c.id)}
+                className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+                  activeCat === c.id
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-foreground hover:bg-secondary"
+                }`}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {allProducts.length > 0 && products.length === 0 ? (
+          <div className="card-soft mt-6 px-6 py-12 text-center">
+            <PackageOpen className="mx-auto size-8 text-primary" />
+            <p className="mt-3 text-sm font-bold">لا توجد منتجات في هذا القسم حالياً</p>
+            <Button variant="outline" className="mt-4 rounded-2xl" onClick={() => setActiveCat("all")}>
+              عرض كل المنتجات
+            </Button>
+          </div>
+        ) : products.length === 0 ? (
           <div className="card-soft mt-8 px-6 py-14 text-center">
             <span className="mx-auto flex size-14 items-center justify-center rounded-3xl bg-secondary text-primary">
               <PackageOpen className="size-7" />
@@ -199,7 +234,7 @@ function StorePage() {
             </Button>
           </div>
         ) : (
-          <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((p) => (
               <article key={p.id} className="card-soft flex flex-col overflow-hidden">
                 {p.imageUrl ? (
