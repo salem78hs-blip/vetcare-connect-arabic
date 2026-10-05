@@ -5,7 +5,10 @@ export type Product = {
   price: number;
   imageUrl: string;
   isAvailable: boolean;
+  categoryId: string | null;
 };
+
+export type Category = { id: string; name: string };
 
 export type Order = {
   id: string;
