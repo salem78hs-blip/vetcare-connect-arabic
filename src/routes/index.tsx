@@ -26,7 +26,6 @@ import { Label } from "@/components/ui/label";
 import { createBooking } from "@/lib/bookings.functions";
 import { formatDate } from "@/lib/bookings";
 import { ANIMAL_TYPES, CLINIC, animalLabel } from "@/lib/clinic";
-import logo from "@/assets/vetona-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -113,7 +112,7 @@ function HomePage() {
         <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:py-4">
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
             <img
-              src={logo.url}
+              src="/logo.png"
               alt="شعار عيادة VetOna البيطرية"
               width={48}
               height={48}
@@ -177,7 +176,7 @@ function HomePage() {
             </div>
           </div>
           <img
-            src={logo.url}
+            src="/logo.png"
             alt="شعار عيادة VetOna: كف قطة يحوي كلباً وقطة"
             width={900}
             height={900}

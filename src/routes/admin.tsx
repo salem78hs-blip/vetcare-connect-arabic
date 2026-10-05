@@ -36,7 +36,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { animalLabel } from "@/lib/clinic";
-import logo from "@/assets/vetona-logo.png.asset.json";
 import {
   DEFAULT_INTERVAL_MONTHS,
   DOSE_INTERVALS,
@@ -194,7 +193,7 @@ function AdminDashboard({ passcode }: { passcode: string }) {
         <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4">
           <div className="flex min-w-0 items-center gap-3">
             <img
-              src={logo.url}
+              src="/logo.png"
               alt="شعار VetOna"
               width={44}
               height={44}

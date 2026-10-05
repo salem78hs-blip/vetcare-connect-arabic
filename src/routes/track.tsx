@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { lookupBookings } from "@/lib/bookings.functions";
 import { formatDate, type Booking } from "@/lib/bookings";
 import { animalLabel } from "@/lib/clinic";
-import logo from "@/assets/vetona-logo.png.asset.json";
 
 export const Route = createFileRoute("/track")({
   head: () => ({
@@ -62,7 +61,7 @@ function TrackPage() {
         <div className="mx-auto grid max-w-3xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3">
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
             <img
-              src={logo.url}
+              src="/logo.png"
               alt="شعار عيادة VetOna البيطرية"
               width={44}
               height={44}
