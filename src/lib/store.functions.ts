@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { normalizePhone } from "@/lib/bookings";
-import type { Order, Product } from "@/lib/store";
+import type { Category, Order, Product } from "@/lib/store";
 
 type ProductRow = {
   id: string;
@@ -10,6 +10,7 @@ type ProductRow = {
   price: number | string;
   image_url: string | null;
   is_available: boolean;
+  category_id: string | null;
 };
 
 type OrderRow = {
@@ -25,7 +26,7 @@ type OrderRow = {
   created_at: string;
 };
 
-const PRODUCT_COLUMNS = "id, name, description, price, image_url, is_available";
+const PRODUCT_COLUMNS = "id, name, description, price, image_url, is_available, category_id";
 const ORDER_COLUMNS =
   "id, product_id, product_name, unit_price, quantity, customer_name, phone, note, status, created_at";
 
@@ -37,6 +38,7 @@ function toProduct(row: ProductRow): Product {
     price: Number(row.price ?? 0),
     imageUrl: row.image_url ?? "",
     isAvailable: row.is_available,
+    categoryId: row.category_id,
   };
 }
 
@@ -220,6 +222,7 @@ export const saveProduct = createServerFn({ method: "POST" })
       price: number;
       imageUrl?: string;
       isAvailable: boolean;
+      categoryId?: string | null;
     }) => {
       const name = String(input?.name ?? "").trim();
       const price = Number(input?.price ?? 0);
@@ -233,6 +236,7 @@ export const saveProduct = createServerFn({ method: "POST" })
         price,
         imageUrl: String(input?.imageUrl ?? "").trim().slice(0, 500),
         isAvailable: Boolean(input?.isAvailable),
+        categoryId: input?.categoryId ? String(input.categoryId) : null,
       };
     },
   )
@@ -244,6 +248,7 @@ export const saveProduct = createServerFn({ method: "POST" })
       price: data.price,
       image_url: data.imageUrl || null,
       is_available: data.isAvailable,
+      category_id: data.categoryId,
     };
 
     const { error } = data.id
@@ -305,5 +310,50 @@ export const deleteOrder = createServerFn({ method: "POST" })
     const db = await guard(data.passcode);
     const { error } = await db.from("orders").delete().eq("id", data.id);
     if (error) throw new Error("تعذّر حذف الطلب");
+    return { ok: true };
+  });
+
+/* ---------------- categories ---------------- */
+
+export const listCategories = createServerFn({ method: "GET" }).handler(async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("categories")
+    .select("id, name")
+    .order("sort_order")
+    .order("created_at");
+  if (error) throw new Error("تعذّر جلب الأقسام");
+  return (data ?? []) as Category[];
+});
+
+export const saveCategory = createServerFn({ method: "POST" })
+  .inputValidator((input: { passcode: string; id?: string | null; name: string }) => {
+    const name = String(input?.name ?? "").trim();
+    if (name.length < 2) throw new Error("اكتب اسم القسم");
+    return {
+      passcode: String(input?.passcode ?? ""),
+      id: input?.id ? String(input.id) : null,
+      name: name.slice(0, 40),
+    };
+  })
+  .handler(async ({ data }) => {
+    const db = await guard(data.passcode);
+    const { error } = data.id
+      ? await db.from("categories").update({ name: data.name }).eq("id", data.id)
+      : await db.from("categories").insert({ name: data.name, sort_order: 100 });
+    if (error) throw new Error(error.code === "23505" ? "هذا القسم موجود مسبقاً" : "تعذّر حفظ القسم");
+    return { ok: true };
+  });
+
+export const deleteCategory = createServerFn({ method: "POST" })
+  .inputValidator((input: { passcode: string; id: string }) => {
+    const id = String(input?.id ?? "");
+    if (!id) throw new Error("قسم غير معروف");
+    return { passcode: String(input?.passcode ?? ""), id };
+  })
+  .handler(async ({ data }) => {
+    const db = await guard(data.passcode);
+    const { error } = await db.from("categories").delete().eq("id", data.id);
+    if (error) throw new Error("تعذّر حذف القسم");
     return { ok: true };
   });

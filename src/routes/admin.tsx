@@ -50,14 +50,15 @@ import {
 import { deleteBooking, listBookings, savePlan, verifyPasscode } from "@/lib/bookings.functions";
 import {
   adminListProducts,
+  listCategories,
   deleteOrder,
   deleteProduct,
   listOrders,
   saveProduct,
   updateOrderStatus,
 } from "@/lib/store.functions";
-import { ORDER_STATUSES, formatPrice, orderStatusLabel, type Order, type Product } from "@/lib/store";
-import { PetRecords, WhatsappSettings } from "@/components/admin-extra-tabs";
+import { ORDER_STATUSES, formatPrice, orderStatusLabel, type Category, type Order, type Product } from "@/lib/store";
+import { CategoriesManager, PetRecords, WhatsappSettings } from "@/components/admin-extra-tabs";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -133,6 +134,18 @@ function PasscodeGate({ onUnlock }: { onUnlock: (code: string) => void }) {
 function AdminDashboard({ passcode }: { passcode: string }) {
   const fetchBookings = useServerFn(listBookings);
   const fetchProducts = useServerFn(adminListProducts);
+  const fetchCategories = useServerFn(listCategories);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const reloadCategories = useCallback(async () => {
+    try {
+      setCategories(await fetchCategories());
+    } catch {
+      toast.error("تعذّر جلب الأقسام");
+    }
+  }, [fetchCategories]);
+  useEffect(() => {
+    void reloadCategories();
+  }, [reloadCategories]);
   const fetchOrders = useServerFn(listOrders);
   const removeBooking = useServerFn(deleteBooking);
   const removeProduct = useServerFn(deleteProduct);
@@ -305,6 +318,14 @@ function AdminDashboard({ passcode }: { passcode: string }) {
 
           {/* ---------- products ---------- */}
           <TabsContent value="store" className="mt-5">
+            <CategoriesManager
+              passcode={passcode}
+              categories={categories}
+              onChanged={() => {
+                void reloadCategories();
+                void reloadProducts();
+              }}
+            />
             <h2 className="mb-4 text-lg font-extrabold">منتجات المتجر</h2>
             <div className="mb-4 flex justify-end">
               <Button className="rounded-2xl" onClick={() => setEditingProduct("new")}>
@@ -324,7 +345,12 @@ function AdminDashboard({ passcode }: { passcode: string }) {
                 {products.map((p) => (
                   <div key={p.id} className="card-soft p-5">
                     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
-                      <h2 className="min-w-0 text-sm font-bold">{p.name}</h2>
+                      <div className="min-w-0">
+                        <h2 className="text-sm font-bold">{p.name}</h2>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {categories.find((c) => c.id === p.categoryId)?.name ?? "بدون قسم"}
+                        </p>
+                      </div>
                       <span
                         className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${
                           p.isAvailable
@@ -479,6 +505,7 @@ function AdminDashboard({ passcode }: { passcode: string }) {
         product={editingProduct}
         onClose={() => setEditingProduct(null)}
         onSaved={reloadProducts}
+        categories={categories}
       />
     </div>
   );
@@ -716,11 +743,13 @@ function ProductDialog({
   product,
   onClose,
   onSaved,
+  categories,
 }: {
   passcode: string;
   product: Product | "new" | null;
   onClose: () => void;
   onSaved: () => void;
+  categories: Category[];
 }) {
   const save = useServerFn(saveProduct);
   const [form, setForm] = useState({
@@ -729,13 +758,14 @@ function ProductDialog({
     price: "0",
     imageUrl: "",
     isAvailable: true,
+    categoryId: "none",
   });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!product) return;
     if (product === "new") {
-      setForm({ name: "", description: "", price: "0", imageUrl: "", isAvailable: true });
+      setForm({ name: "", description: "", price: "0", imageUrl: "", isAvailable: true, categoryId: "none" });
     } else {
       setForm({
         name: product.name,
@@ -743,6 +773,7 @@ function ProductDialog({
         price: String(product.price),
         imageUrl: product.imageUrl,
         isAvailable: product.isAvailable,
+        categoryId: product.categoryId ?? "none",
       });
     }
   }, [product]);
@@ -760,6 +791,7 @@ function ProductDialog({
           price: Number(form.price),
           imageUrl: form.imageUrl,
           isAvailable: form.isAvailable,
+          categoryId: form.categoryId === "none" ? null : form.categoryId,
         },
       });
       toast.success("تم حفظ المنتج");
@@ -803,6 +835,25 @@ function ProductDialog({
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               className="rounded-2xl"
             />
+          </div>
+          <div className="space-y-2">
+            <Label>القسم</Label>
+            <Select
+              value={form.categoryId}
+              onValueChange={(v) => setForm((f) => ({ ...f, categoryId: v }))}
+            >
+              <SelectTrigger className="rounded-2xl" aria-label="القسم">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">بدون قسم</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="pPrice">السعر (دينار)</Label>
