@@ -37,7 +37,6 @@ import { listCategories, listProducts, placeCartOrder, placeOrder } from "@/lib/
 import { formatPrice, type Product } from "@/lib/store";
 import { CLINIC } from "@/lib/clinic";
 import { toWhatsappNumber } from "@/lib/bookings";
-import logo from "@/assets/vetona-logo.png.asset.json";
 
 type CartItem = { product: Product; quantity: number };
 
@@ -143,7 +142,7 @@ function StorePage() {
         <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3">
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
             <img
-              src={logo.url}
+              src="/logo.png"
               alt="شعار عيادة VetOna البيطرية"
               width={44}
               height={44}
