@@ -175,6 +175,7 @@ export function CategoriesManager({
       onChanged();
       return true;
     } catch (err) {
+      console.error("Category action failed:", err);
       toast.error(err instanceof Error ? err.message : "حدث خطأ");
       return false;
     } finally {
