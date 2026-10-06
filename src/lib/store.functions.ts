@@ -341,7 +341,14 @@ export const saveCategory = createServerFn({ method: "POST" })
     const { error } = data.id
       ? await db.from("categories").update({ name: data.name }).eq("id", data.id)
       : await db.from("categories").insert({ name: data.name, sort_order: 100 });
-    if (error) throw new Error(error.code === "23505" ? "هذا القسم موجود مسبقاً" : "تعذّر حفظ القسم");
+    if (error) {
+      console.error("saveCategory failed", error);
+      throw new Error(
+        error.code === "23505"
+          ? "هذا القسم موجود مسبقاً"
+          : `تعذّر حفظ القسم: ${error.message}`,
+      );
+    }
     return { ok: true };
   });
 
