@@ -11,6 +11,8 @@
 
 ## Rules
 
+- Use direct WhatsApp links for customer messaging; do not introduce Twilio settings or automated messaging endpoints, to keep administration focused on clinic and store management.
+
 - Serve the clinic logo from `public/logo.png` and reference it as the literal
   lowercase path `"/logo.png"`; never import it through a bundled asset module,
   because the deployed host is case-sensitive and a mismatched path breaks the

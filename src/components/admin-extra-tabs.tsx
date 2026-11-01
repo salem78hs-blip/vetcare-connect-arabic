@@ -1,16 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Loader2, MessageCircle, Pencil, PawPrint, Phone, Plus, Tags, Trash2, X } from "lucide-react";
+import { Check, Pencil, PawPrint, Phone, Plus, Tags, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { animalLabel } from "@/lib/clinic";
 import { formatDate, type Booking } from "@/lib/bookings";
 import { deleteCategory, saveCategory } from "@/lib/store.functions";
 import type { Category } from "@/lib/store";
-import { getWhatsappSettings, saveWhatsappSettings } from "@/lib/whatsapp-settings.functions";
 
 export function PetRecords({ bookings }: { bookings: Booking[] | null }) {
   const [q, setQ] = useState("");
@@ -71,83 +69,6 @@ export function PetRecords({ bookings }: { bookings: Booking[] | null }) {
         </div>
       )}
     </div>
-  );
-}
-
-export function WhatsappSettings({ passcode }: { passcode: string }) {
-  const load = useServerFn(getWhatsappSettings);
-  const save = useServerFn(saveWhatsappSettings);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [sid, setSid] = useState("");
-  const [token, setToken] = useState("");
-  const [from, setFrom] = useState("");
-  const [hasToken, setHasToken] = useState(false);
-
-  useEffect(() => {
-    load({ data: { passcode } })
-      .then((s) => {
-        setSid(s.accountSid);
-        setFrom(s.fromNumber);
-        setHasToken(s.hasAuthToken);
-      })
-      .catch(() => toast.error("تعذّر جلب الإعدادات"))
-      .finally(() => setLoading(false));
-  }, [load, passcode]);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!hasToken && !token.trim()) {
-      toast.error("أدخل Auth Token");
-      return;
-    }
-    setSaving(true);
-    try {
-      await save({ data: { passcode, accountSid: sid, authToken: token, fromNumber: from } });
-      setHasToken(true);
-      setToken("");
-      toast.success("تم حفظ إعدادات Twilio");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "تعذّر الحفظ");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  if (loading) return <div className="h-64 animate-pulse rounded-2xl bg-muted" />;
-
-  return (
-    <form onSubmit={submit} className="mx-auto max-w-xl space-y-4 rounded-2xl border bg-card p-6 shadow-sm">
-      <div className="flex items-center gap-3">
-        <span className="grid size-10 place-items-center rounded-2xl bg-primary/10 text-primary">
-          <MessageCircle className="size-5" />
-        </span>
-        <div>
-          <h2 className="font-extrabold">ربط واتساب عبر Twilio</h2>
-          <p className="text-sm text-muted-foreground">تُستخدم لإرسال تذكيرات التطعيم تلقائياً</p>
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="tw-sid">Twilio Account SID</Label>
-        <Input id="tw-sid" dir="ltr" value={sid} onChange={(e) => setSid(e.target.value)}
-          placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" className="rounded-2xl" />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="tw-token">Auth Token</Label>
-        <Input id="tw-token" dir="ltr" type="password" autoComplete="off" value={token}
-          onChange={(e) => setToken(e.target.value)}
-          placeholder={hasToken ? "•••••••• (محفوظ — اتركه فارغاً للإبقاء عليه)" : "Auth Token"}
-          className="rounded-2xl" />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="tw-from">رقم المرسل (From Phone Number)</Label>
-        <Input id="tw-from" dir="ltr" value={from} onChange={(e) => setFrom(e.target.value)}
-          placeholder="+9647xxxxxxxxx" className="rounded-2xl" />
-      </div>
-      <Button type="submit" disabled={saving} className="w-full rounded-2xl">
-        {saving && <Loader2 className="size-4 animate-spin" />} حفظ الإعدادات
-      </Button>
-    </form>
   );
 }
 
