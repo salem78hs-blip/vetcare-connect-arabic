@@ -4,6 +4,7 @@ import { Check, Pencil, Plus, Tags, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import { deleteCategory, saveCategory } from "@/lib/store.functions";
 import type { Category } from "@/lib/store";
 

@@ -197,90 +197,15 @@ function AdminDashboard({ passcode }: { passcode: string }) {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 pb-20">
-        <Tabs defaultValue="bookings">
-          <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-2xl sm:grid-cols-2">
-            <TabsTrigger value="bookings" className="rounded-2xl">
-              الحجوزات
-            </TabsTrigger>
+        <Tabs defaultValue="store">
+          <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-2xl">
             <TabsTrigger value="store" className="rounded-2xl">
               المتجر
             </TabsTrigger>
           </TabsList>
 
-          {/* ---------- bookings ---------- */}
-          <TabsContent value="bookings" className="mt-5">
-            {bookings === null ? (
-              <SkeletonList />
-            ) : bookings.length === 0 ? (
-              <EmptyState
-                icon={<CalendarX className="size-7" />}
-                title="لا توجد حجوزات بعد"
-                text="ستظهر الحجوزات هنا مباشرة بعد أن يرسل أحد العملاء طلب موعد من الموقع."
-              />
-            ) : (
-              <div className="grid gap-3">
-                {bookings.map((b) => (
-                  <div key={b.id} className="card-soft p-5">
-                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-bold">{b.ownerName}</p>
-                        <a
-                          href={`tel:${b.phone}`}
-                          dir="ltr"
-                          className="mt-0.5 block text-xs font-semibold text-primary"
-                        >
-                          {b.phone}
-                        </a>
-                      </div>
-                      <span className="shrink-0 rounded-full bg-secondary px-3 py-1 text-[11px] font-bold text-secondary-foreground">
-                        {animalLabel(b.animalType, b.animalOther)}
-                      </span>
-                    </div>
-                    <dl className="mt-4 grid gap-1.5 text-xs sm:grid-cols-3">
-                      <Row label="اسم الحيوان" value={b.catName || "—"} />
-                      <Row label="الموعد" value={formatDate(b.date)} />
-                    </dl>
-                    <div className="mt-4 flex gap-2">
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 rounded-2xl sm:flex-none"
-                      >
-                        <a
-                          href={whatsappReminderUrl(b)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <MessageCircle className="size-4" /> إرسال تذكير واتساب
-                        </a>
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        aria-label="حذف الحجز"
-                        className="min-h-11 min-w-11 shrink-0 rounded-2xl text-destructive"
-                        onClick={async () => {
-                          try {
-                            await removeBooking({ data: { passcode, id: b.id } });
-                            toast.success("تم حذف الحجز");
-                            void reloadBookings();
-                          } catch (error) {
-                            toast.error(error instanceof Error ? error.message : "تعذّر الحذف");
-                          }
-                        }}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* ---------- products ---------- */}
           <TabsContent value="store" className="mt-5">
+            {/* ---------- products ---------- */}
             <CategoriesManager
               passcode={passcode}
               categories={categories}
