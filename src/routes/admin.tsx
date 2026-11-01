@@ -10,7 +10,6 @@ import {
   Pencil,
   Plus,
   ShoppingBag,
-  Syringe,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -36,17 +35,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { animalLabel } from "@/lib/clinic";
-import {
-  DEFAULT_INTERVAL_MONTHS,
-  DOSE_INTERVALS,
-  addMonths,
-  formatDate,
-  newId,
-  whatsappReminderUrl,
-  type Booking,
-  type VaccineDose,
-} from "@/lib/bookings";
-import { deleteBooking, listBookings, savePlan, verifyPasscode } from "@/lib/bookings.functions";
+import { formatDate, whatsappReminderUrl, type Booking } from "@/lib/bookings";
+import { deleteBooking, listBookings, verifyPasscode } from "@/lib/bookings.functions";
 import {
   adminListProducts,
   listCategories,
@@ -57,7 +47,7 @@ import {
   updateOrderStatus,
 } from "@/lib/store.functions";
 import { ORDER_STATUSES, formatPrice, orderStatusLabel, type Category, type Order, type Product } from "@/lib/store";
-import { CategoriesManager, PetRecords } from "@/components/admin-extra-tabs";
+import { CategoriesManager } from "@/components/admin-extra-tabs";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -65,7 +55,7 @@ export const Route = createFileRoute("/admin")({
       { title: "لوحة الإدارة | VetOna" },
       {
         name: "description",
-        content: "إدارة حجوزات عيادة VetOna، خطط التطعيم، منتجات المتجر وطلبات العملاء.",
+        content: "إدارة حجوزات عيادة VetOna، منتجات المتجر وطلبات العملاء.",
       },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "لوحة الإدارة | VetOna" },
@@ -154,7 +144,6 @@ function AdminDashboard({ passcode }: { passcode: string }) {
   const [bookings, setBookings] = useState<Booking[] | null>(null);
   const [products, setProducts] = useState<Product[] | null>(null);
   const [orders, setOrders] = useState<Order[] | null>(null);
-  const [editingPlan, setEditingPlan] = useState<Booking | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | "new" | null>(null);
 
   const reloadBookings = useCallback(async () => {
@@ -208,21 +197,18 @@ function AdminDashboard({ passcode }: { passcode: string }) {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 pb-20">
-        <Tabs defaultValue="vaccinations">
-          <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-2xl sm:grid-cols-3">
-            <TabsTrigger value="vaccinations" className="rounded-2xl">
-              التطعيمات
+        <Tabs defaultValue="bookings">
+          <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-2xl sm:grid-cols-2">
+            <TabsTrigger value="bookings" className="rounded-2xl">
+              الحجوزات
             </TabsTrigger>
             <TabsTrigger value="store" className="rounded-2xl">
               المتجر
             </TabsTrigger>
-            <TabsTrigger value="records" className="rounded-2xl">
-              سجلات الحيوانات
-            </TabsTrigger>
           </TabsList>
 
-          {/* ---------- vaccinations ---------- */}
-          <TabsContent value="vaccinations" className="mt-5">
+          {/* ---------- bookings ---------- */}
+          <TabsContent value="bookings" className="mt-5">
             {bookings === null ? (
               <SkeletonList />
             ) : bookings.length === 0 ? (
@@ -253,27 +239,8 @@ function AdminDashboard({ passcode }: { passcode: string }) {
                     <dl className="mt-4 grid gap-1.5 text-xs sm:grid-cols-3">
                       <Row label="اسم الحيوان" value={b.catName || "—"} />
                       <Row label="الموعد" value={formatDate(b.date)} />
-                      <Row
-                        label="خطة التطعيم"
-                        value={
-                          (() => {
-                            const firstDose = b.plan?.doses[0];
-                            return firstDose
-                              ? `${b.plan?.doses.length ?? 0} جرعة — ${formatDate(firstDose.date)}`
-                              : "غير محددة";
-                          })()
-                        }
-                      />
                     </dl>
                     <div className="mt-4 flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 rounded-2xl sm:flex-none"
-                        onClick={() => setEditingPlan(b)}
-                      >
-                        <Syringe className="size-4" /> خطة التطعيم
-                      </Button>
                       <Button
                         asChild
                         size="sm"
@@ -480,19 +447,9 @@ function AdminDashboard({ passcode }: { passcode: string }) {
             </section>
           </TabsContent>
 
-          <TabsContent value="records" className="mt-5">
-            <PetRecords bookings={bookings} />
-          </TabsContent>
-
         </Tabs>
       </main>
 
-      <PlanDialog
-        passcode={passcode}
-        booking={editingPlan}
-        onClose={() => setEditingPlan(null)}
-        onSaved={reloadBookings}
-      />
       <ProductDialog
         passcode={passcode}
         product={editingProduct}
@@ -547,189 +504,6 @@ function EmptyState({
   );
 }
 
-function PlanDialog({
-  passcode,
-  booking,
-  onClose,
-  onSaved,
-}: {
-  passcode: string;
-  booking: Booking | null;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
-  const save = useServerFn(savePlan);
-  const [doses, setDoses] = useState<VaccineDose[]>([]);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (booking) setDoses(booking.plan?.doses ?? []);
-  }, [booking]);
-
-  function update(id: string, patch: Partial<VaccineDose>) {
-    setDoses((d) => d.map((x) => (x.id === id ? { ...x, ...patch } : x)));
-  }
-
-  async function submit() {
-    if (!booking) return;
-    if (doses.some((d) => !d.vaccine.trim() || !d.date)) {
-      toast.error("أكمل نوع التطعيم وتاريخ كل جرعة");
-      return;
-    }
-    const sorted = [...doses].sort((a, b) => a.date.localeCompare(b.date));
-    setSaving(true);
-    try {
-      await save({
-        data: { passcode, id: booking.id, plan: sorted.length ? { doses: sorted } : null },
-      });
-      toast.success("تم حفظ خطة التطعيم");
-      onSaved();
-      onClose();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "تعذّر حفظ الخطة");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <Dialog open={Boolean(booking)} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto rounded-3xl">
-        <DialogHeader>
-          <DialogTitle className="text-right">
-            خطة التطعيم{" "}
-            {booking
-              ? `— ${booking.catName || animalLabel(booking.animalType, booking.animalOther)}`
-              : ""}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">عدد الجرعات: {doses.length}</p>
-            <Button
-              size="sm"
-              variant="outline"
-              className="rounded-2xl"
-              onClick={() =>
-                setDoses((d) => [
-                  ...d,
-                  {
-                    id: newId(),
-                    vaccine: "",
-                    date: "",
-                    intervalMonths: DEFAULT_INTERVAL_MONTHS,
-                    nextDueDate: "",
-                  },
-                ])
-              }
-            >
-              <Plus className="size-4" /> إضافة جرعة
-            </Button>
-          </div>
-
-          {doses.length === 0 ? (
-            <p className="rounded-2xl bg-muted p-4 text-center text-sm text-muted-foreground">
-              لا توجد جرعات، أضف الجرعة الأولى.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {doses.map((d, i) => (
-                <div key={d.id} className="rounded-2xl border border-border p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold">الجرعة {i + 1}</span>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      aria-label={`حذف الجرعة ${i + 1}`}
-                      className="min-h-11 min-w-11 rounded-2xl text-destructive"
-                      onClick={() => setDoses((prev) => prev.filter((x) => x.id !== d.id))}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor={`vaccine-${d.id}`}>نوع التطعيم</Label>
-                      <Input
-                        id={`vaccine-${d.id}`}
-                        value={d.vaccine}
-                        maxLength={60}
-                        onChange={(e) => update(d.id, { vaccine: e.target.value })}
-                        className="rounded-2xl"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`date-${d.id}`}>تاريخ الجرعة</Label>
-                      <Input
-                        id={`date-${d.id}`}
-                        type="date"
-                        value={d.date}
-                        onChange={(e) => {
-                          const date = e.target.value;
-                          const months = d.intervalMonths ?? DEFAULT_INTERVAL_MONTHS;
-                          update(d.id, {
-                            date,
-                            intervalMonths: months,
-                            nextDueDate: addMonths(date, months),
-                          });
-                        }}
-                        className="rounded-2xl"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>مدة التذكير القادم</Label>
-                      <Select
-                        value={String(d.intervalMonths ?? DEFAULT_INTERVAL_MONTHS)}
-                        onValueChange={(value) => {
-                          const months = Number(value);
-                          update(d.id, {
-                            intervalMonths: months,
-                            nextDueDate: addMonths(d.date, months),
-                          });
-                        }}
-                      >
-                        <SelectTrigger className="rounded-2xl">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DOSE_INTERVALS.map((opt) => (
-                            <SelectItem key={opt.value} value={String(opt.value)}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`next-${d.id}`}>الجرعة القادمة (تلقائي)</Label>
-                      <Input
-                        id={`next-${d.id}`}
-                        type="date"
-                        value={d.nextDueDate ?? ""}
-                        onChange={(e) => update(d.id, { nextDueDate: e.target.value })}
-                        className="rounded-2xl"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <DialogFooter className="gap-2">
-          <Button variant="outline" className="rounded-2xl" onClick={onClose}>
-            إلغاء
-          </Button>
-          <Button className="rounded-2xl" disabled={saving} onClick={submit}>
-            {saving ? <Loader2 className="size-4 animate-spin" /> : "حفظ الخطة"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 function ProductDialog({
   passcode,

@@ -16,7 +16,6 @@ import {
   ShieldCheck,
   ShoppingBag,
   Stethoscope,
-  Syringe,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,7 +33,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "عيادة VetOna البيطرية: احجز موعد الفحص أو التطعيم لقطتك أو كلبك أو طيورك بإدخال اسمك ورقم هاتفك والتاريخ.",
+          "عيادة VetOna البيطرية: احجز موعد الفحص لقطتك أو كلبك أو طيورك بإدخال اسمك ورقم هاتفك والتاريخ.",
       },
       { property: "og:title", content: "VetOna | عيادة بيطرية" },
       { property: "og:description", content: "حجز بسيط وسريع في عيادة VetOna البيطرية." },
@@ -157,7 +156,7 @@ function HomePage() {
               موعد لحيوانك <span className="text-brand-gradient">بخطوة واحدة</span>
             </h1>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:text-base">
-              فحص، تطعيم، ومتابعة صحية في عيادة VetOna. أكمل الحقول وسنتواصل معك لتأكيد الموعد.
+              فحص ومتابعة صحية في عيادة VetOna. أكمل الحقول وسنتواصل معك لتأكيد الموعد.
             </p>
             <p className="mt-4 flex items-center gap-2 text-sm font-medium text-foreground">
               <Clock className="size-4 shrink-0 text-primary" /> استقبال يومي — يفضّل الحجز المسبق
@@ -187,7 +186,6 @@ function HomePage() {
         <section className="mt-8 grid gap-3 sm:grid-cols-3">
           {[
             { icon: Stethoscope, title: "فحص سريري", text: "تشخيص دقيق ومتابعة حالة حيوانك" },
-            { icon: Syringe, title: "تطعيمات", text: "جدول جرعات منظّم مع تذكير بالموعد" },
             { icon: HeartPulse, title: "رعاية ومتابعة", text: "إرشادات تغذية وعناية بعد الزيارة" },
           ].map((f) => (
             <div

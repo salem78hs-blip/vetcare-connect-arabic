@@ -79,7 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "VetOna | عيادة بيطرية — حجز موعد بخطوة واحدة" },
       {
         name: "description",
-        content: "عيادة VetOna البيطرية: حجز مواعيد بسيط ومتابعة خطة التطعيم للقطط والكلاب والطيور.",
+        content: "عيادة VetOna البيطرية: حجز مواعيد بسيط للقطط والكلاب والطيور.",
       },
       { name: "author", content: "VetOna Veterinary Clinic" },
 
