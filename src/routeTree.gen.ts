@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as StoreRouteImport } from './routes/store'
 import { Route as TrackRouteImport } from './routes/track'
-import { Route as ApiPublicCronSendDailyWhatsappRemindersRouteImport } from './routes/api/public/cron/send-daily-whatsapp-reminders'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -35,26 +34,18 @@ const TrackRoute = TrackRouteImport.update({
   path: '/track',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicCronSendDailyWhatsappRemindersRoute =
-  ApiPublicCronSendDailyWhatsappRemindersRouteImport.update({
-    id: '/api/public/cron/send-daily-whatsapp-reminders',
-    path: '/api/public/cron/send-daily-whatsapp-reminders',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/store': typeof StoreRoute
   '/track': typeof TrackRoute
-  '/api/public/cron/send-daily-whatsapp-reminders': typeof ApiPublicCronSendDailyWhatsappRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/store': typeof StoreRoute
   '/track': typeof TrackRoute
-  '/api/public/cron/send-daily-whatsapp-reminders': typeof ApiPublicCronSendDailyWhatsappRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,30 +53,13 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/store': typeof StoreRoute
   '/track': typeof TrackRoute
-  '/api/public/cron/send-daily-whatsapp-reminders': typeof ApiPublicCronSendDailyWhatsappRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/admin'
-    | '/store'
-    | '/track'
-    | '/api/public/cron/send-daily-whatsapp-reminders'
+  fullPaths: '/' | '/admin' | '/store' | '/track'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/admin'
-    | '/store'
-    | '/track'
-    | '/api/public/cron/send-daily-whatsapp-reminders'
-  id:
-    | '__root__'
-    | '/'
-    | '/admin'
-    | '/store'
-    | '/track'
-    | '/api/public/cron/send-daily-whatsapp-reminders'
+  to: '/' | '/admin' | '/store' | '/track'
+  id: '__root__' | '/' | '/admin' | '/store' | '/track'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -93,7 +67,6 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   StoreRoute: typeof StoreRoute
   TrackRoute: typeof TrackRoute
-  ApiPublicCronSendDailyWhatsappRemindersRoute: typeof ApiPublicCronSendDailyWhatsappRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -126,13 +99,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/cron/send-daily-whatsapp-reminders': {
-      id: '/api/public/cron/send-daily-whatsapp-reminders'
-      path: '/api/public/cron/send-daily-whatsapp-reminders'
-      fullPath: '/api/public/cron/send-daily-whatsapp-reminders'
-      preLoaderRoute: typeof ApiPublicCronSendDailyWhatsappRemindersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -141,8 +107,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   StoreRoute: StoreRoute,
   TrackRoute: TrackRoute,
-  ApiPublicCronSendDailyWhatsappRemindersRoute:
-    ApiPublicCronSendDailyWhatsappRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
