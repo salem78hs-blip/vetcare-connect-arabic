@@ -128,11 +128,11 @@ Next Visit / Vaccination due date.
 
 "طباعة الوصفة الطبية" (Print Prescription) button generating a styled printable PDF-like receipt with clinic letterhead.
 
-Automated Reminders & WhatsApp Queue:
+Direct WhatsApp messaging:
 
-Table showing pending vaccination reminders and appointment confirmations.
+Store checkout opens WhatsApp with the customer's order details.
 
-Toggle switches for auto-SMS/WhatsApp triggers.
+Vaccination reminders use manual WhatsApp links. No Twilio settings or automated messaging API is required.
 
 🛠️ Technical Implementation Details
 

@@ -57,7 +57,7 @@ import {
   updateOrderStatus,
 } from "@/lib/store.functions";
 import { ORDER_STATUSES, formatPrice, orderStatusLabel, type Category, type Order, type Product } from "@/lib/store";
-import { CategoriesManager, PetRecords, WhatsappSettings } from "@/components/admin-extra-tabs";
+import { CategoriesManager, PetRecords } from "@/components/admin-extra-tabs";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -209,7 +209,7 @@ function AdminDashboard({ passcode }: { passcode: string }) {
 
       <main className="mx-auto max-w-6xl px-4 py-6 pb-20">
         <Tabs defaultValue="vaccinations">
-          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl sm:grid-cols-4">
+          <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-2xl sm:grid-cols-3">
             <TabsTrigger value="vaccinations" className="rounded-2xl">
               التطعيمات
             </TabsTrigger>
@@ -218,9 +218,6 @@ function AdminDashboard({ passcode }: { passcode: string }) {
             </TabsTrigger>
             <TabsTrigger value="records" className="rounded-2xl">
               سجلات الحيوانات
-            </TabsTrigger>
-            <TabsTrigger value="whatsapp" className="rounded-2xl">
-              إعدادات واتساب
             </TabsTrigger>
           </TabsList>
 
@@ -487,9 +484,6 @@ function AdminDashboard({ passcode }: { passcode: string }) {
             <PetRecords bookings={bookings} />
           </TabsContent>
 
-          <TabsContent value="whatsapp" className="mt-5">
-            <WhatsappSettings passcode={passcode} />
-          </TabsContent>
         </Tabs>
       </main>
 
