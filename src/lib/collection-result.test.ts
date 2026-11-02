@@ -1,14 +1,15 @@
-import { describe, expect, test } from "bun:test";
+import { describe, it as test } from "node:test";
+import { deepStrictEqual } from "node:assert";
 import { collectionResult } from "./collection-result";
 
 describe("collection reads", () => {
   test("an empty table is a successful empty collection", () => {
-    expect(collectionResult({ status: "fulfilled", value: [] })).toEqual({ items: [], failed: false });
+    deepStrictEqual(collectionResult({ status: "fulfilled", value: [] }), { items: [], failed: false });
   });
   test("a missing table keeps the screen usable and reports a failure", () => {
-    expect(collectionResult({ status: "rejected", reason: new Error("missing table") })).toEqual({ items: [], failed: true });
+    deepStrictEqual(collectionResult({ status: "rejected", reason: new Error("missing table") }), { items: [], failed: true });
   });
   test("successful rows are retained", () => {
-    expect(collectionResult({ status: "fulfilled", value: [{ id: "product-1" }] })).toEqual({ items: [{ id: "product-1" }], failed: false });
+    deepStrictEqual(collectionResult({ status: "fulfilled", value: [{ id: "product-1" }] }), { items: [{ id: "product-1" }], failed: false });
   });
 });
