@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { lookupBookings } from "@/lib/bookings.functions";
 import { formatDate, type Booking } from "@/lib/bookings";
-import { animalLabel } from "@/lib/clinic";
+import { CLINIC, animalLabel } from "@/lib/clinic";
 
 export const Route = createFileRoute("/track")({
   head: () => ({
@@ -180,7 +180,7 @@ function TrackPage() {
         )}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          للاستفسار: <span dir="ltr">0774 766 9510</span>
+          للاستفسار: <span dir="ltr">{CLINIC.phonesDisplay[0]}</span>
         </p>
       </main>
 
