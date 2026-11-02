@@ -11,6 +11,9 @@
 
 ## Rules
 
+- Public catalog reads allow anon SELECT; customer orders and bookings allow validated INSERT only, with staff reads handled by passcode-checked server functions so customer contact data is never publicly readable.
+- Collection screens use settled results to preserve usable empty layouts on failed reads while separately indicating the failure; an empty table is a successful result.
+
 - Use direct WhatsApp links for customer messaging; do not introduce Twilio settings or automated messaging endpoints, to keep administration focused on clinic and store management.
 
 - Serve the clinic logo from `public/logo.png` and reference it as the literal
