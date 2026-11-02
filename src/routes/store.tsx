@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -37,6 +37,7 @@ import { listCategories, listProducts, placeCartOrder, placeOrder } from "@/lib/
 import { formatPrice, type Product } from "@/lib/store";
 import { CLINIC } from "@/lib/clinic";
 import { toWhatsappNumber } from "@/lib/bookings";
+import { collectionResult } from "@/lib/collection-result";
 
 type CartItem = { product: Product; quantity: number };
 
@@ -59,8 +60,10 @@ export const Route = createFileRoute("/store")({
     ],
   }),
   loader: async () => {
-    const [products, categories] = await Promise.all([listProducts(), listCategories()]);
-    return { products, categories };
+    const [productResult, categoryResult] = await Promise.allSettled([listProducts(), listCategories()]);
+    const products = collectionResult(productResult);
+    const categories = collectionResult(categoryResult);
+    return { products: products.items, categories: categories.items, loadFailed: products.failed || categories.failed };
   },
   errorComponent: () => (
     <div className="mx-auto max-w-md px-4 py-20 text-center">
@@ -83,7 +86,8 @@ export const Route = createFileRoute("/store")({
 });
 
 function StorePage() {
-  const { products: allProducts, categories } = Route.useLoaderData();
+  const { products: allProducts, categories, loadFailed } = Route.useLoaderData();
+  const router = useRouter();
   const [activeCat, setActiveCat] = useState<string>("all");
   const products = useMemo(
     () => (activeCat === "all" ? allProducts : allProducts.filter((p) => p.categoryId === activeCat)),
@@ -190,6 +194,13 @@ function StorePage() {
           اختر المنتج المناسب لقطتك وأرسل الطلب، وسنتواصل معك لتأكيد التفاصيل والتسليم.
         </p>
 
+        {loadFailed && (
+          <div role="alert" className="mt-6 flex flex-wrap items-center justify-between gap-3 border border-border p-4">
+            <p className="text-sm text-muted-foreground">تعذّر تحميل بعض بيانات المتجر. يمكنك الاتصال بالعيادة أو المحاولة مجدداً.</p>
+            <Button variant="outline" onClick={() => void router.invalidate()}>إعادة المحاولة</Button>
+          </div>
+        )}
+
         {allProducts.length > 0 && categories.length > 0 && (
           <div className="-mx-4 mt-6 flex gap-2 overflow-x-auto px-4 pb-1">
             {[{ id: "all", name: "الكل" }, ...categories].map((c) => (
@@ -222,9 +233,9 @@ function StorePage() {
             <span className="mx-auto flex size-14 items-center justify-center rounded-3xl bg-secondary text-primary">
               <PackageOpen className="size-7" />
             </span>
-            <h2 className="mt-4 text-base font-bold">لا توجد منتجات معروضة حالياً</h2>
+            <h2 className="mt-4 text-base font-bold">{loadFailed ? "المنتجات غير متاحة الآن" : "لا توجد منتجات معروضة حالياً"}</h2>
             <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              نعمل على إضافة المنتجات قريباً، يمكنك الاتصال بنا للاستفسار عن المتوفر.
+              {loadFailed ? "يمكنك الاتصال بالعيادة للاستفسار عن المنتجات." : "يمكنك الاتصال بنا للاستفسار عن المتوفر."}
             </p>
             <Button asChild className="mt-6 rounded-2xl">
               <a href={`tel:${CLINIC.phones[0]}`}>

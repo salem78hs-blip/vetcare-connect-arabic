@@ -6,5 +6,7 @@
 
 ## Orders and bookings access
 
-- [ ] Repair orders/bookings grants and enable safe insert/read policies in the connected database.
-- [ ] Verify public submission and passcode-protected admin readback; provide the same SQL for the external Vercel database.
+- [x] Repair orders/bookings grants and enable safe insert/read policies in the connected database.
+- [x] Verify public submission and passcode-protected admin readback; provide the same SQL for the external Vercel database.
+- [x] Provide a complete fresh-database script for categories, products, bookings and orders, with private customer records (external execution remains the user's step).
+- [x] Handle empty and failed collection loads gracefully in the store and administration; verify empty screens and run three focused tests.
