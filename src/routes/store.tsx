@@ -422,20 +422,20 @@ function OrderDialog({ product, onClose }: { product: Product | null; onClose: (
       await send({
         data: { productId: product.id, customerName: name, phone, quantity: qty, note },
       });
-      openOrderWhatsapp(popup, {
-        buyerName: name,
-        phone,
-        items: [{ name: product.name, quantity: qty, amount: product.price * qty }],
-        total: product.price * qty,
-      });
-      setDone(true);
-      toast.success("تم إرسال الطلب");
+      toast.success("تم حفظ الطلب");
     } catch (error) {
-      popup?.close();
-      toast.error(error instanceof Error ? error.message : "تعذّر إرسال الطلب");
-    } finally {
-      setSending(false);
+      console.error("[v0] تعذر حفظ طلب المنتج، سيتم فتح واتساب مباشرة", error);
+      toast.warning("تعذر حفظ الطلب في النظام، لكن يمكنك إرساله عبر واتساب");
     }
+
+    openOrderWhatsapp(popup, {
+      buyerName: name,
+      phone,
+      items: [{ name: product.name, quantity: qty, amount: product.price * qty }],
+      total: product.price * qty,
+    });
+    setDone(true);
+    setSending(false);
   }
 
   return (
@@ -610,25 +610,25 @@ function CheckoutDialog({
           items: cart.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
         },
       });
-      openOrderWhatsapp(popup, {
-        buyerName: name,
-        phone,
-        items: cart.map((i) => ({
-          name: i.product.name,
-          quantity: i.quantity,
-          amount: i.product.price * i.quantity,
-        })),
-        total,
-      });
-      toast.success("تم استلام طلبك، أكمل الإرسال من واتساب");
-      onPlaced();
-      close();
+      toast.success("تم حفظ الطلب، أكمل الإرسال من واتساب");
     } catch (error) {
-      popup?.close();
-      toast.error(error instanceof Error ? error.message : "تعذّر إرسال الطلب");
-    } finally {
-      setSending(false);
+      console.error("[v0] تعذر حفظ طلب السلة، سيتم فتح واتساب مباشرة", error);
+      toast.warning("تعذر حفظ الطلب في النظام، لكن يمكنك إرساله عبر واتساب");
     }
+
+    openOrderWhatsapp(popup, {
+      buyerName: name,
+      phone,
+      items: cart.map((i) => ({
+        name: i.product.name,
+        quantity: i.quantity,
+        amount: i.product.price * i.quantity,
+      })),
+      total,
+    });
+    onPlaced();
+    close();
+    setSending(false);
   }
 
   return (
