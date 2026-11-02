@@ -56,6 +56,8 @@ import {
 } from "@/lib/store.functions";
 import { ORDER_STATUSES, formatPrice, orderStatusLabel, type Category, type Order, type Product } from "@/lib/store";
 import { CategoriesManager } from "@/components/admin-extra-tabs";
+import { uploadProductImage } from "@/lib/product-image.functions";
+import { validateProductImage } from "@/lib/product-image";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -645,6 +647,8 @@ function ProductDialog({
   categories: Category[];
 }) {
   const save = useServerFn(saveProduct);
+  const upload = useServerFn(uploadProductImage);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -671,8 +675,29 @@ function ProductDialog({
     }
   }, [product]);
 
+  async function selectImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || uploading || saving) return;
+    try {
+      validateProductImage(file);
+      setUploading(true);
+      const data = new FormData();
+      data.set("passcode", passcode);
+      data.set("image", file);
+      const result = await upload({ data });
+      setForm((f) => ({ ...f, imageUrl: result.imageUrl }));
+      toast.success("تم رفع الصورة");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تعذّر رفع الصورة");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (uploading || saving) return;
     setSaving(true);
     try {
       await save({
@@ -698,7 +723,7 @@ function ProductDialog({
   }
 
   return (
-    <Dialog open={Boolean(product)} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={Boolean(product)} onOpenChange={(open) => !open && !uploading && !saving && onClose()}>
       <DialogContent className="max-h-[85vh] max-w-md overflow-y-auto rounded-3xl">
         <DialogHeader>
           <DialogTitle className="text-right">
@@ -762,16 +787,23 @@ function ProductDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="pImage">
-              رابط الصورة <span className="text-muted-foreground">(اختياري)</span>
+              صورة المنتج <span className="text-muted-foreground">(اختياري)</span>
             </Label>
             <Input
               id="pImage"
-              dir="ltr"
-              placeholder="https://…"
-              value={form.imageUrl}
-              onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))}
-              className="rounded-2xl"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              disabled={uploading || saving}
+              onChange={(e) => void selectImage(e)}
+              className="rounded-2xl file:me-3 file:text-foreground"
             />
+            {uploading ? (
+              <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin motion-reduce:animate-none" /> جارٍ رفع الصورة…
+              </p>
+            ) : form.imageUrl ? (
+              <img src={form.imageUrl} alt="صورة المنتج" className="h-36 w-full rounded-lg bg-muted object-contain" />
+            ) : null}
           </div>
           <div className="flex items-center justify-between rounded-2xl bg-muted px-4 py-3">
             <Label htmlFor="pAvailable">عرض المنتج في المتجر</Label>
@@ -783,10 +815,10 @@ function ProductDialog({
           </div>
 
           <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" className="rounded-2xl" onClick={onClose}>
+            <Button type="button" variant="outline" disabled={uploading || saving} className="rounded-2xl" onClick={onClose}>
               إلغاء
             </Button>
-            <Button type="submit" disabled={saving} className="rounded-2xl">
+            <Button type="submit" disabled={saving || uploading} className="rounded-2xl">
               {saving ? <Loader2 className="size-4 animate-spin" /> : "حفظ"}
             </Button>
           </DialogFooter>
