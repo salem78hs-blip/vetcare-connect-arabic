@@ -11,6 +11,8 @@
 
 ## Rules
 
+- Product image writes use passcode-checked server uploads to the products storage bucket; never allow anonymous storage writes. Return browser-facing storage URLs and save them through the existing product form.
+
 - Public catalog reads allow anon SELECT; customer orders and bookings allow validated INSERT only, with staff reads handled by passcode-checked server functions so customer contact data is never publicly readable.
 - Collection screens use settled results to preserve usable empty layouts on failed reads while separately indicating the failure; an empty table is a successful result.
 

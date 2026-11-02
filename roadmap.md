@@ -10,3 +10,9 @@
 - [x] Verify public submission and passcode-protected admin readback; provide the same SQL for the external Vercel database.
 - [x] Provide a complete fresh-database script for categories, products, bookings and orders, with private customer records (external execution remains the user's step).
 - [x] Handle empty and failed collection loads gracefully in the store and administration; verify empty screens and run three focused tests.
+
+## Product image uploads
+
+- [ ] Create public products storage bucket (blocked by workspace public-bucket restriction).
+- [ ] Replace image URL input with validated file upload, loading state, and saved image preview.
+- [ ] Verify image upload and product image readback.
