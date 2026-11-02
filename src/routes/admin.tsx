@@ -159,7 +159,7 @@ function AdminDashboard({ passcode }: { passcode: string }) {
     try {
       setBookings(await fetchBookings({ data: { passcode } }));
     } catch {
-      toast.error("تعذّر جلب الحجوزات");
+      setBookings([]);
     }
   }, [fetchBookings, passcode]);
 
@@ -688,7 +688,7 @@ function ProductDialog({
       onSaved();
       onClose();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "تعذّر حفظ المنتج");
+      toast.error(error instanceof Error ? error.message : "ت��ذّر حفظ المنتج");
     } finally {
       setSaving(false);
     }
