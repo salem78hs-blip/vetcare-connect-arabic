@@ -161,6 +161,7 @@ function AdminDashboard({ passcode }: { passcode: string }) {
     try {
       setBookings(await fetchBookings({ data: { passcode } }));
     } catch {
+      setBookings([]);
       toast.error("تعذّر جلب الحجوزات");
     }
   }, [fetchBookings, passcode]);
@@ -169,6 +170,7 @@ function AdminDashboard({ passcode }: { passcode: string }) {
     try {
       setProducts(await fetchProducts({ data: { passcode } }));
     } catch {
+      setProducts([]);
       toast.error("تعذّر جلب المنتجات");
     }
   }, [fetchProducts, passcode]);
@@ -177,6 +179,7 @@ function AdminDashboard({ passcode }: { passcode: string }) {
     try {
       setOrders(await fetchOrders({ data: { passcode } }));
     } catch {
+      setOrders([]);
       toast.error("تعذّر جلب الطلبات");
     }
   }, [fetchOrders, passcode]);
