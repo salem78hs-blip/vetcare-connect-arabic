@@ -14,5 +14,5 @@
 ## Product image uploads
 
 - [ ] Create public products storage bucket (blocked by workspace public-bucket restriction).
-- [ ] Replace image URL input with validated file upload, loading state, and saved image preview.
+- [x] Replace image URL input with validated file upload, loading state, and saved image preview.
 - [ ] Verify image upload and product image readback.
