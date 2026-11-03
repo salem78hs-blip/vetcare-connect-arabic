@@ -15,4 +15,4 @@
 
 - [x] Create the products storage bucket (private; workspace blocks public buckets).
 - [x] Replace image URL input with validated file upload, loading state, and saved image preview.
-- [ ] Verify image upload and product image readback.
+- [x] Verify image upload, image serving route, and store readback.
