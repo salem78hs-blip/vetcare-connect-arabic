@@ -31,7 +31,7 @@ export const uploadProductImage = createServerFn({ method: "POST" })
       console.error("Product image upload failed", { message: error.message });
       throw new Error("تعذّر رفع الصورة؛ تأكد من تفعيل مخزن صور المنتجات ثم حاول مجدداً");
     }
-    const browserUrl = import.meta.env['VITE_SUPABASE_URL'];
-    if (!browserUrl) throw new Error("تعذّر تحديد رابط الصورة");
-    return { imageUrl: `${browserUrl.replace(/\/$/, "")}/storage/v1/object/public/products/${path}` };
+    // The storage bucket is private (public buckets are blocked), so images
+    // are served through the app's public image route instead of storage URLs.
+    return { imageUrl: `/api/public/product-image/${path}` };
   });
