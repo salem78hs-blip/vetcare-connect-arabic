@@ -11,7 +11,8 @@
 
 ## Rules
 
-- Product image writes use passcode-checked server uploads to the products storage bucket; never allow anonymous storage writes. Return browser-facing storage URLs and save them through the existing product form.
+- Product image writes use passcode-checked server uploads to the products storage bucket; never allow anonymous storage writes. Save them through the existing product form.
+- The products storage bucket is private (public buckets are blocked in this workspace); serve product images through the `/api/public/product-image/$` route and store that app URL in `image_url`, never a direct storage URL.
 
 - Public catalog reads allow anon SELECT; customer orders and bookings allow validated INSERT only, with staff reads handled by passcode-checked server functions so customer contact data is never publicly readable.
 - Collection screens use settled results to preserve usable empty layouts on failed reads while separately indicating the failure; an empty table is a successful result.

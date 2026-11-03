@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as StoreRouteImport } from './routes/store'
 import { Route as TrackRouteImport } from './routes/track'
+import { Route as ApiPublicProductImageSplatRouteImport } from './routes/api/public/product-image/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,26 @@ const TrackRoute = TrackRouteImport.update({
   path: '/track',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicProductImageSplatRoute =
+  ApiPublicProductImageSplatRouteImport.update({
+    id: '/api/public/product-image/$',
+    path: '/api/public/product-image/$',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/store': typeof StoreRoute
   '/track': typeof TrackRoute
+  '/api/public/product-image/$': typeof ApiPublicProductImageSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/store': typeof StoreRoute
   '/track': typeof TrackRoute
+  '/api/public/product-image/$': typeof ApiPublicProductImageSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +62,21 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/store': typeof StoreRoute
   '/track': typeof TrackRoute
+  '/api/public/product-image/$': typeof ApiPublicProductImageSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/store' | '/track'
+  fullPaths:
+    '/' | '/admin' | '/store' | '/track' | '/api/public/product-image/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/store' | '/track'
-  id: '__root__' | '/' | '/admin' | '/store' | '/track'
+  to: '/' | '/admin' | '/store' | '/track' | '/api/public/product-image/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/store'
+    | '/track'
+    | '/api/public/product-image/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +84,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   StoreRoute: typeof StoreRoute
   TrackRoute: typeof TrackRoute
+  ApiPublicProductImageSplatRoute: typeof ApiPublicProductImageSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +117,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/product-image/$': {
+      id: '/api/public/product-image/$'
+      path: '/api/public/product-image/$'
+      fullPath: '/api/public/product-image/$'
+      preLoaderRoute: typeof ApiPublicProductImageSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +132,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   StoreRoute: StoreRoute,
   TrackRoute: TrackRoute,
+  ApiPublicProductImageSplatRoute: ApiPublicProductImageSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
