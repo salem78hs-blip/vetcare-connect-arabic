@@ -35,6 +35,16 @@ function toBooking(row: Row): Booking {
 const COLUMNS =
   "id, owner_name, phone, service_type, animal_type, animal_other, pet_name, booking_date, vaccination_plan, created_at";
 
+function isMissingBookingsSchema(error: { code?: string; message?: string } | null) {
+  return (
+    error?.code === "42P01" ||
+    error?.code === "42703" ||
+    error?.code === "PGRST204" ||
+    error?.code === "PGRST205" ||
+    /bookings.*not find|relation .*bookings.*does not exist|column .*does not exist|could not find the .* column/i.test(error?.message ?? "")
+  );
+}
+
 export const createBooking = createServerFn({ method: "POST" })
   .inputValidator((input: BookingInput) => {
     const ownerName = String(input?.ownerName ?? "").trim();
@@ -96,7 +106,10 @@ export const lookupBookings = createServerFn({ method: "POST" })
       .eq("phone", data.phone)
       .order("booking_date", { ascending: false });
 
-    if (error) throw new Error("تعذّر جلب الحجوزات، حاول مرة أخرى");
+    if (error) {
+      if (isMissingBookingsSchema(error)) return [];
+      throw new Error("تعذّر جلب الحجوزات، حاول مرة أخرى");
+    }
     return (rows as Row[]).map(toBooking);
   });
 
@@ -125,7 +138,10 @@ export const listBookings = createServerFn({ method: "POST" })
       .select(COLUMNS)
       .order("created_at", { ascending: false });
 
-    if (error) throw new Error("تعذّر جلب الحجوزات");
+    if (error) {
+      if (isMissingBookingsSchema(error)) return [];
+      throw new Error("تعذّر جلب الحجوزات");
+    }
     return (rows as Row[]).map(toBooking);
   });
 

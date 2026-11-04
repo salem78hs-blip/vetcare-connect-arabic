@@ -7,6 +7,7 @@ import {
   PackageOpen,
   Pencil,
   Plus,
+  RefreshCw,
   ShoppingBag,
   Trash2,
 } from "lucide-react";
@@ -33,7 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { animalLabel } from "@/lib/clinic";
-import { formatDate, whatsappReminderUrl, type Booking } from "@/lib/bookings";
+import { formatDate, serviceTypeLabel, type Booking } from "@/lib/bookings";
 import { deleteBooking, listBookings, verifyPasscode } from "@/lib/bookings.functions";
 import {
   adminListProducts,
@@ -45,9 +46,9 @@ import {
   updateOrderStatus,
 } from "@/lib/store.functions";
 import { ORDER_STATUSES, formatPrice, orderStatusLabel, type Category, type Order, type Product } from "@/lib/store";
-  import { CategoriesManager } from "@/components/admin-extra-tabs";
-  import { uploadProductImage } from "@/lib/product-image.functions";
-  import { validateProductImage } from "@/lib/product-image";
+import { CategoriesManager } from "@/components/admin-extra-tabs";
+import { uploadProductImage } from "@/lib/product-image.functions";
+import { validateProductImage } from "@/lib/product-image";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -222,17 +223,17 @@ function AdminDashboard({ passcode }: { passcode: string }) {
   <RefreshCw className="size-4" /> تحديث
   </Button>
   </div>
-  {bookings.length === 0 ? (
-  <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">لا توجد حجوزات حتى الآن.</div>
-  ) : (
-  <div className="space-y-3">
-  {bookings.map((booking) => (
+{!bookings || bookings.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">لا توجد حجوزات حتى الآن.</div>
+                ) : (
+                  <div className="space-y-3">
+                    {bookings.map((booking) => (
   <div key={booking.id} className="rounded-2xl border bg-card p-4 shadow-sm">
   <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
   <div><span className="text-muted-foreground">العميل</span><p className="font-semibold">{booking.ownerName}</p></div>
   <div><span className="text-muted-foreground">الهاتف</span><p className="font-semibold">{booking.phone}</p></div>
   <div><span className="text-muted-foreground">الحيوان</span><p className="font-semibold">{animalLabel(booking.animalType, booking.animalOther)}</p></div>
-  <div><span className="text-muted-foreground">اسم الحيوان</span><p className="font-semibold">{booking.petName}</p></div>
+  <div><span className="text-muted-foreground">اسم الحيوان</span><p className="font-semibold">{booking.catName || "—"}</p></div>
   <div><span className="text-muted-foreground">التاريخ</span><p className="font-semibold">{formatDate(booking.date)}</p></div>
   <div><span className="text-muted-foreground">نوع الخدمة</span><p className="font-semibold">{serviceTypeLabel(booking.serviceType)}</p></div>
   <div><span className="text-muted-foreground">أُنشئ في</span><p className="font-semibold">{formatDate(booking.createdAt)}</p></div>
@@ -244,7 +245,7 @@ function AdminDashboard({ passcode }: { passcode: string }) {
   className="rounded-xl text-destructive hover:text-destructive"
   onClick={() => {
   if (window.confirm("هل تريد حذف هذا الحجز؟")) {
-  void deleteBooking(booking.id, passcode).then(() => void reloadBookings());
+  void removeBooking({ data: { passcode, id: booking.id } }).then(() => void reloadBookings());
   }
   }}
   >
