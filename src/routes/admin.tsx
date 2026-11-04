@@ -222,11 +222,11 @@ function AdminDashboard({ passcode }: { passcode: string }) {
   <RefreshCw className="size-4" /> تحديث
   </Button>
   </div>
-  {bookings.length === 0 ? (
-  <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">لا توجد حجوزات حتى الآن.</div>
-  ) : (
-  <div className="space-y-3">
-  {bookings.map((booking) => (
+{!bookings || bookings.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">لا توجد حجوزات حتى الآن.</div>
+                ) : (
+                  <div className="space-y-3">
+                    {bookings.map((booking) => (
   <div key={booking.id} className="rounded-2xl border bg-card p-4 shadow-sm">
   <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
   <div><span className="text-muted-foreground">العميل</span><p className="font-semibold">{booking.ownerName}</p></div>
