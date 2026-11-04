@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createBooking } from "@/lib/bookings.functions";
-import { bookingInputSchema, bookingWhatsappUrl, formatDate, serviceTypeLabel } from "@/lib/bookings";
+import { bookingInputSchema, bookingWhatsappUrl, formatDate } from "@/lib/bookings";
 import { ANIMAL_TYPES, CLINIC, animalLabel } from "@/lib/clinic";
 
 export const Route = createFileRoute("/")({
@@ -191,7 +191,7 @@ function HomePage() {
               </span>
               <h2 className="mt-4 text-lg font-bold">تم استلام الحجز</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                {serviceTypeLabel(done.serviceType)} — {animalLabel(done.animalType, done.animalOther)}
+                {animalLabel(done.animalType, done.animalOther)}
                 {done.petName ? ` — ${done.petName}` : ""} — {formatDate(done.date)}
               </p>
               <Button className="mt-6 rounded-2xl" onClick={() => setDone(null)}>
@@ -226,35 +226,13 @@ function HomePage() {
                 />
               </div>
 
-              <fieldset className="space-y-2">
-                <legend className="text-sm font-medium">نوع الخدمة <span className="text-muted-foreground">(اختياري)</span></legend>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {[
-                    { value: "medical_checkup", label: "فحص طبي" },
-                    { value: "grooming_bathing", label: "التحميم والعناية" },
-                  ].map((service) => (
-                    <Button
-                      key={service.value}
-                      type="button"
-                      variant="outline"
-                      onClick={() => set("serviceType", form.serviceType === service.value ? "" : service.value)}
-                      aria-pressed={form.serviceType === service.value}
-                      className={`min-h-11 rounded-2xl border px-3 text-sm font-semibold transition-colors ${
-                        form.serviceType === service.value
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-input bg-card text-foreground hover:bg-accent"
-                      }`}
-                    >
-                      {service.label}
-                    </Button>
-                  ))}
-                </div>
-              </fieldset>
-
               <div className="space-y-2">
-                <Label htmlFor="serviceDescription">وصف الحالة / ملاحظات إضافية</Label>
+                <Label htmlFor="serviceDescription" className="flex-wrap leading-relaxed">
+                  وصف الحالة <span className="text-muted-foreground">(فحص طبي، تحميم، أخرى)</span>
+                </Label>
                 <Textarea
                   id="serviceDescription"
+                  required
                   value={form.serviceDescription}
                   onChange={(e) => set("serviceDescription", e.target.value)}
                   maxLength={1000}

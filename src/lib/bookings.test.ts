@@ -2,13 +2,18 @@ import { describe, it } from "node:test";
 import { strictEqual, throws } from "node:assert";
 import { bookingInputSchema, bookingWhatsappUrl } from "./bookings";
 
-const input = { ownerName: "سالم", phone: "07700000001", animalType: "cat" as const, date: "2026-11-05" };
+const input = { ownerName: "سالم", phone: "07700000001", animalType: "cat" as const, date: "2026-11-05", serviceDescription: "فحص طبي" };
 
 describe("booking condition notes", () => {
-  it("accepts a booking without a service selection or notes", () => {
+  it("accepts a required description without a service selection", () => {
     const booking = bookingInputSchema.parse(input);
     strictEqual(booking.serviceType, "");
-    strictEqual(booking.serviceDescription, "");
+    strictEqual(booking.serviceDescription, "فحص طبي");
+  });
+  it("rejects missing, empty, and whitespace-only descriptions", () => {
+    for (const serviceDescription of [undefined, "", "  \n  "]) {
+      strictEqual(bookingInputSchema.safeParse({ ...input, serviceDescription }).success, false);
+    }
   });
   it("preserves free notes with or without either standard service", () => {
     for (const serviceType of ["", "medical_checkup", "grooming_bathing"] as const) {
