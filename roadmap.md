@@ -16,3 +16,9 @@
 - [x] Create the products storage bucket (private; workspace blocks public buckets).
 - [x] Replace image URL input with validated file upload, loading state, and saved image preview.
 - [x] Verify image upload, image serving route, and store readback.
+
+## Booking condition description
+
+- [x] Make service selection optional and keep condition notes visible.
+- [x] Add bookings service_description storage with validated inputs and include it in the direct WhatsApp message.
+- [x] Verify a no-service booking, description readback, and WhatsApp destination (eight tests passed; desktop/mobile and protected admin verified; test booking removed).

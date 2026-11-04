@@ -22,8 +22,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { createBooking } from "@/lib/bookings.functions";
-import { formatDate, toWhatsappNumber } from "@/lib/bookings";
+import { bookingInputSchema, bookingWhatsappUrl, formatDate, serviceTypeLabel } from "@/lib/bookings";
 import { ANIMAL_TYPES, CLINIC, animalLabel } from "@/lib/clinic";
 
 export const Route = createFileRoute("/")({
@@ -48,6 +49,7 @@ const empty = {
   ownerName: "",
   phone: "",
   serviceType: "",
+  serviceDescription: "",
   animalType: "cat",
   animalOther: "",
   petName: "",
@@ -66,53 +68,18 @@ function HomePage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const error =
-      form.ownerName.trim().length < 2
-        ? "اكتب اسم المالك"
-        : !/^07\d{9}$/.test(form.phone.trim())
-          ? "رقم الهاتف يجب أن يكون 11 رقماً ويبدأ بـ 07"
-            : !form.serviceType
-              ? "اختر نوع الخدمة"
-              : !form.animalType
-              ? "اختر نوع الحيوان"
-              : form.animalType === "other" && form.animalOther.trim().length < 2
-                ? "اكتب نوع الحيوان"
-                : !form.date
-                  ? "اختر تاريخ الموعد"
-                  : null;
-    if (error) {
-      toast.error(error);
+    const result = bookingInputSchema.safeParse({ ...form, catName: form.petName });
+    if (!result.success) {
+      toast.error(result.error.issues[0]?.message ?? "تحقق من بيانات الحجز");
       return;
     }
 
     setSaving(true);
     const snapshot = form;
     try {
-      await save({
-        data: {
-          ownerName: snapshot.ownerName.trim(),
-          phone: snapshot.phone.trim(),
-          serviceType: snapshot.serviceType as "medical_checkup" | "grooming_bathing",
-          animalType: snapshot.animalType,
-          animalOther: snapshot.animalType === "other" ? snapshot.animalOther.trim() : "",
-          catName: snapshot.petName.trim(),
-          date: snapshot.date,
-        },
-      });
-      const serviceLabel = snapshot.serviceType === "medical_checkup" ? "فحص طبي" : "التحميم والعناية";
-      const animalText = animalLabel(snapshot.animalType, snapshot.animalOther);
-      const message = [
-        "مرحباً، أود تأكيد هذا الحجز لدى عيادة VetOna:",
-        `اسم العميل: ${snapshot.ownerName.trim()}`,
-        `رقم الهاتف: ${snapshot.phone.trim()}`,
-        `نوع الحيوان: ${animalText}`,
-        `اسم الحيوان: ${snapshot.petName.trim() || "غير مذكور"}`,
-        `تاريخ الحجز: ${formatDate(snapshot.date)}`,
-        `نوع الخدمة: ${serviceLabel}`,
-      ].join("\\n");
-      window.location.assign(
-        `https://wa.me/${toWhatsappNumber(CLINIC.phones[0])}?text=${encodeURIComponent(message)}`,
-      );
+      const booking = await save({ data: result.data });
+      setDone(snapshot);
+      window.location.assign(bookingWhatsappUrl({ ...result.data, serviceDescription: booking.serviceDescription }));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "تعذّر حفظ الحجز، حاول مرة أخرى");
     } finally {
@@ -224,7 +191,7 @@ function HomePage() {
               </span>
               <h2 className="mt-4 text-lg font-bold">تم استلام الحجز</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                {done.serviceType === "medical_checkup" ? "فحص طبي" : "التحميم والعناية"} — {animalLabel(done.animalType, done.animalOther)}
+                {serviceTypeLabel(done.serviceType)} — {animalLabel(done.animalType, done.animalOther)}
                 {done.petName ? ` — ${done.petName}` : ""} — {formatDate(done.date)}
               </p>
               <Button className="mt-6 rounded-2xl" onClick={() => setDone(null)}>
@@ -260,16 +227,17 @@ function HomePage() {
               </div>
 
               <fieldset className="space-y-2">
-                <legend className="text-sm font-medium">نوع الخدمة</legend>
+                <legend className="text-sm font-medium">نوع الخدمة <span className="text-muted-foreground">(اختياري)</span></legend>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {[
                     { value: "medical_checkup", label: "فحص طبي" },
                     { value: "grooming_bathing", label: "التحميم والعناية" },
                   ].map((service) => (
-                    <button
+                    <Button
                       key={service.value}
                       type="button"
-                      onClick={() => set("serviceType", service.value)}
+                      variant="outline"
+                      onClick={() => set("serviceType", form.serviceType === service.value ? "" : service.value)}
                       aria-pressed={form.serviceType === service.value}
                       className={`min-h-11 rounded-2xl border px-3 text-sm font-semibold transition-colors ${
                         form.serviceType === service.value
@@ -278,10 +246,22 @@ function HomePage() {
                       }`}
                     >
                       {service.label}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </fieldset>
+
+              <div className="space-y-2">
+                <Label htmlFor="serviceDescription">وصف الحالة / ملاحظات إضافية</Label>
+                <Textarea
+                  id="serviceDescription"
+                  value={form.serviceDescription}
+                  onChange={(e) => set("serviceDescription", e.target.value)}
+                  maxLength={1000}
+                  rows={4}
+                  className="min-h-28 resize-y rounded-2xl"
+                />
+              </div>
 
               <fieldset className="space-y-2">
                 <legend className="text-sm font-medium">نوع الحيوان</legend>
@@ -346,7 +326,7 @@ function HomePage() {
               <Button type="submit" size="lg" disabled={saving} className="w-full rounded-2xl">
                 {saving ? (
                   <>
-                    <Loader2 className="size-5 animate-spin" /> جارٍ التسجيل���
+                    <Loader2 className="size-5 animate-spin" /> جارٍ التسجيل…
                   </>
                 ) : (
                   <>

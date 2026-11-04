@@ -22,6 +22,13 @@
       "when": 1793547054739,
       "tag": "0002_orders_bookings_access",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793802907610,
+      "tag": "0003_booking_service_description",
+      "breakpoints": true
     }
   ]
 }

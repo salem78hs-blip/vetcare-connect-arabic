@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { CLINIC, animalLabel } from "./clinic";
+
 export type VaccineDose = {
   id: string;
   vaccine: string;
@@ -39,14 +42,15 @@ export const SERVICE_TYPES = [
 export type ServiceType = (typeof SERVICE_TYPES)[number]["value"];
 
 export function serviceTypeLabel(value: string) {
-  return SERVICE_TYPES.find((service) => service.value === value)?.label ?? value;
+  return SERVICE_TYPES.find((service) => service.value === value)?.label ?? (value || "غير محددة");
 }
 
 export type Booking = {
   id: string;
   ownerName: string;
   phone: string;
-  serviceType: ServiceType;
+  serviceType: ServiceType | "";
+  serviceDescription: string;
   animalType: string;
   animalOther?: string;
   catName: string;
@@ -55,15 +59,40 @@ export type Booking = {
   plan: VaccinationPlan | null;
 };
 
-export type BookingInput = {
-  ownerName: string;
-  phone: string;
-  serviceType: ServiceType;
-  animalType: string;
-  animalOther?: string;
-  catName?: string;
-  date: string;
-};
+export const bookingInputSchema = z.object({
+  ownerName: z.string().trim().min(2, "اكتب اسم المالك").max(60, "اسم المالك طويل جداً"),
+  phone: z.string().transform(normalizePhone).pipe(z.string().regex(/^07\d{9}$/, "رقم الهاتف يجب أن يكون 11 رقماً ويبدأ بـ 07")),
+  serviceType: z.enum(["", "medical_checkup", "grooming_bathing"], { message: "نوع الخدمة غير صحيح" }).optional().default(""),
+  serviceDescription: z.string().trim().max(1000, "وصف الحالة يجب ألا يتجاوز 1000 حرف").optional().default(""),
+  animalType: z.enum(["cat", "dog", "bird", "other"], { message: "اختر نوع الحيوان" }),
+  animalOther: z.string().trim().max(40).optional().default(""),
+  catName: z.string().trim().max(40).optional().default(""),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "اختر تاريخ الموعد").refine((value) => {
+    const date = new Date(`${value}T00:00:00Z`);
+    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  }, "اختر تاريخ موعد صحيح"),
+}).superRefine((value, ctx) => {
+  if (value.animalType === "other" && value.animalOther.length < 2) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["animalOther"], message: "اكتب نوع الحيوان" });
+  }
+}).transform((value) => ({ ...value, animalOther: value.animalType === "other" ? value.animalOther : "" }));
+
+export type BookingInput = z.input<typeof bookingInputSchema>;
+
+export function bookingWhatsappUrl(input: BookingInput) {
+  const booking = bookingInputSchema.parse(input);
+  const lines = [
+    "مرحباً، أود تأكيد هذا الحجز لدى عيادة VetOna:",
+    `اسم العميل: ${booking.ownerName}`,
+    `رقم الهاتف: ${booking.phone}`,
+    `نوع الحيوان: ${animalLabel(booking.animalType, booking.animalOther)}`,
+    `اسم الحيوان: ${booking.catName || "غير مذكور"}`,
+    `تاريخ الحجز: ${formatDate(booking.date)}`,
+    ...(booking.serviceType ? [`نوع الخدمة: ${serviceTypeLabel(booking.serviceType)}`] : []),
+    ...(booking.serviceDescription ? [`وصف الحالة / ملاحظات إضافية: ${booking.serviceDescription}`] : []),
+  ];
+  return `https://wa.me/${toWhatsappNumber(CLINIC.phones[0])}?text=${encodeURIComponent(lines.join("\n"))}`;
+}
 
 export function newId() {
   return Math.random().toString(36).slice(2, 10);
