@@ -174,6 +174,8 @@ function AdminDashboard({ passcode }: { passcode: string }) {
     void reloadBookings();
     void reloadProducts();
     void reloadOrders();
+    const refresh = window.setInterval(() => void reloadBookings(), 10_000);
+    return () => window.clearInterval(refresh);
   }, [reloadBookings, reloadProducts, reloadOrders]);
 
   return (
@@ -198,11 +200,73 @@ function AdminDashboard({ passcode }: { passcode: string }) {
 
       <main className="mx-auto max-w-6xl px-4 py-6 pb-20">
         <Tabs defaultValue="store">
-          <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-2xl">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl">
             <TabsTrigger value="store" className="rounded-2xl">
               المتجر
             </TabsTrigger>
+            <TabsTrigger value="bookings" className="rounded-2xl">
+              الحجوزات
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="bookings" className="mt-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-extrabold">الحجوزات</h2>
+                <p className="mt-1 text-xs text-muted-foreground">تتحدث القائمة تلقائياً كل 10 ثوانٍ.</p>
+              </div>
+              <Button variant="outline" className="rounded-2xl" onClick={() => void reloadBookings()}>
+                تحديث
+              </Button>
+            </div>
+            {bookings === null ? (
+              <SkeletonList />
+            ) : bookings.length === 0 ? (
+              <EmptyState icon={<CalendarX className="size-7" />} title="لا توجد حجوزات" text="ستظهر الحجوزات الجديدة هنا." />
+            ) : (
+              <div className="grid gap-3">
+                {bookings.map((booking) => (
+                  <div key={booking.id} className="card-soft p-5">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h3 className="font-bold">{booking.ownerName}</h3>
+                        <a href={`tel:${booking.phone}`} dir="ltr" className="mt-1 block text-sm font-semibold text-primary">
+                          {booking.phone}
+                        </a>
+                      </div>
+                      <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold text-secondary-foreground">
+                        {booking.serviceType === "medical_checkup" ? "فحص طبي" : "التحميم والعناية"}
+                      </span>
+                    </div>
+                    <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                      <Row label="نوع الحيوان" value={animalLabel(booking.animalType, booking.animalOther)} />
+                      <Row label="اسم الحيوان" value={booking.catName || "غير مذكور"} />
+                      <Row label="التاريخ" value={formatDate(booking.date)} />
+                      <Row label="وقت الاستلام" value={formatDate(booking.createdAt)} />
+                    </dl>
+                    <div className="mt-4 flex justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-2xl text-destructive"
+                        onClick={async () => {
+                          try {
+                            await removeBooking({ data: { passcode, id: booking.id } });
+                            toast.success("تم حذف الحجز");
+                            void reloadBookings();
+                          } catch (error) {
+                            toast.error(error instanceof Error ? error.message : "تعذّر حذف الحجز");
+                          }
+                        }}
+                      >
+                        <Trash2 className="size-4" /> حذف
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
           <TabsContent value="store" className="mt-5">
             {/* ---------- products ---------- */}
@@ -277,7 +341,7 @@ function AdminDashboard({ passcode }: { passcode: string }) {
                             toast.success("تم حذف المنتج");
                             void reloadProducts();
                           } catch (error) {
-                            toast.error(error instanceof Error ? error.message : "تعذّر الحذف");
+                            toast.error(error instanceof Error ? error.message : "تعذّر الح��ف");
                           }
                         }}
                       >

@@ -31,10 +31,22 @@ export type VaccinationPlan = {
   doses: VaccineDose[];
 };
 
+export const SERVICE_TYPES = [
+  { value: "medical_checkup", label: "فحص طبي" },
+  { value: "grooming_bathing", label: "التحميم والعناية" },
+] as const;
+
+export type ServiceType = (typeof SERVICE_TYPES)[number]["value"];
+
+export function serviceTypeLabel(value: string) {
+  return SERVICE_TYPES.find((service) => service.value === value)?.label ?? value;
+}
+
 export type Booking = {
   id: string;
   ownerName: string;
   phone: string;
+  serviceType: ServiceType;
   animalType: string;
   animalOther?: string;
   catName: string;
@@ -46,6 +58,7 @@ export type Booking = {
 export type BookingInput = {
   ownerName: string;
   phone: string;
+  serviceType: ServiceType;
   animalType: string;
   animalOther?: string;
   catName?: string;
