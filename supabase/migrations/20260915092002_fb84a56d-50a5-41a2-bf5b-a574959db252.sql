@@ -2,6 +2,7 @@ CREATE TABLE public.bookings (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   owner_name TEXT NOT NULL,
   phone TEXT NOT NULL,
+  service_type TEXT NOT NULL DEFAULT 'medical_checkup' CHECK (service_type IN ('medical_checkup', 'grooming_bathing')),
   animal_type TEXT NOT NULL,
   animal_other TEXT,
   pet_name TEXT,

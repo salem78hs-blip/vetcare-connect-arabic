@@ -8,7 +8,6 @@ import {
   Pencil,
   Plus,
   ShoppingBag,
-  Syringe,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -34,17 +33,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { animalLabel } from "@/lib/clinic";
-import {
-  DEFAULT_INTERVAL_MONTHS,
-  DOSE_INTERVALS,
-  addMonths,
-  formatDate,
-  newId,
-  whatsappReminderUrl,
-  type Booking,
-  type VaccineDose,
-} from "@/lib/bookings";
-import { deleteBooking, listBookings, savePlan, verifyPasscode } from "@/lib/bookings.functions";
+import { formatDate, whatsappReminderUrl, type Booking } from "@/lib/bookings";
+import { deleteBooking, listBookings, verifyPasscode } from "@/lib/bookings.functions";
 import {
   adminListProducts,
   listCategories,
@@ -55,9 +45,9 @@ import {
   updateOrderStatus,
 } from "@/lib/store.functions";
 import { ORDER_STATUSES, formatPrice, orderStatusLabel, type Category, type Order, type Product } from "@/lib/store";
-import { CategoriesManager } from "@/components/admin-extra-tabs";
-import { uploadProductImage } from "@/lib/product-image.functions";
-import { validateProductImage } from "@/lib/product-image";
+  import { CategoriesManager } from "@/components/admin-extra-tabs";
+  import { uploadProductImage } from "@/lib/product-image.functions";
+  import { validateProductImage } from "@/lib/product-image";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -65,7 +55,7 @@ export const Route = createFileRoute("/admin")({
       { title: "لوحة الإدارة | VetOna" },
       {
         name: "description",
-        content: "إدارة حجوزات عيادة VetOna، خطط التطعيم، منتجات المتجر وطلبات العملاء.",
+        content: "إدارة حجوزات عيادة VetOna، منتجات المتجر وطلبات العملاء.",
       },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "لوحة الإدارة | VetOna" },
@@ -154,7 +144,6 @@ function AdminDashboard({ passcode }: { passcode: string }) {
   const [bookings, setBookings] = useState<Booking[] | null>(null);
   const [products, setProducts] = useState<Product[] | null>(null);
   const [orders, setOrders] = useState<Order[] | null>(null);
-  const [editingPlan, setEditingPlan] = useState<Booking | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | "new" | null>(null);
 
   const reloadBookings = useCallback(async () => {
@@ -188,6 +177,8 @@ function AdminDashboard({ passcode }: { passcode: string }) {
     void reloadBookings();
     void reloadProducts();
     void reloadOrders();
+    const refresh = window.setInterval(() => void reloadBookings(), 10_000);
+    return () => window.clearInterval(refresh);
   }, [reloadBookings, reloadProducts, reloadOrders]);
 
   return (
@@ -212,14 +203,63 @@ function AdminDashboard({ passcode }: { passcode: string }) {
 
       <main className="mx-auto max-w-6xl px-4 py-6 pb-20">
         <Tabs defaultValue="store">
-          <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-2xl">
-            <TabsTrigger value="store" className="rounded-2xl">
-              المتجر
-            </TabsTrigger>
-          </TabsList>
+  <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl">
+  <TabsTrigger value="store" className="rounded-2xl">
+  المتجر
+  </TabsTrigger>
+  <TabsTrigger value="bookings" className="rounded-2xl">
+  الحجوزات
+  </TabsTrigger>
+  </TabsList>
 
-          {/* ---------- products ---------- */}
+  <TabsContent value="bookings" className="mt-5">
+  <div className="mb-4 flex items-center justify-between gap-3">
+  <div>
+  <h2 className="text-lg font-extrabold">الحجوزات</h2>
+  <p className="text-sm text-muted-foreground">تتحدث القائمة تلقائياً كل 10 ثوانٍ</p>
+  </div>
+  <Button variant="outline" size="sm" className="rounded-2xl" onClick={() => void reloadBookings()}>
+  <RefreshCw className="size-4" /> تحديث
+  </Button>
+  </div>
+  {bookings.length === 0 ? (
+  <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">لا توجد حجوزات حتى الآن.</div>
+  ) : (
+  <div className="space-y-3">
+  {bookings.map((booking) => (
+  <div key={booking.id} className="rounded-2xl border bg-card p-4 shadow-sm">
+  <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+  <div><span className="text-muted-foreground">العميل</span><p className="font-semibold">{booking.ownerName}</p></div>
+  <div><span className="text-muted-foreground">الهاتف</span><p className="font-semibold">{booking.phone}</p></div>
+  <div><span className="text-muted-foreground">الحيوان</span><p className="font-semibold">{animalLabel(booking.animalType, booking.animalOther)}</p></div>
+  <div><span className="text-muted-foreground">اسم الحيوان</span><p className="font-semibold">{booking.petName}</p></div>
+  <div><span className="text-muted-foreground">التاريخ</span><p className="font-semibold">{formatDate(booking.date)}</p></div>
+  <div><span className="text-muted-foreground">نوع الخدمة</span><p className="font-semibold">{serviceTypeLabel(booking.serviceType)}</p></div>
+  <div><span className="text-muted-foreground">أُنشئ في</span><p className="font-semibold">{formatDate(booking.createdAt)}</p></div>
+  </div>
+  <div className="mt-3 flex justify-end">
+  <Button
+  variant="ghost"
+  size="sm"
+  className="rounded-xl text-destructive hover:text-destructive"
+  onClick={() => {
+  if (window.confirm("هل تريد حذف هذا الحجز؟")) {
+  void deleteBooking(booking.id, passcode).then(() => void reloadBookings());
+  }
+  }}
+  >
+  <Trash2 className="size-4" /> حذف
+  </Button>
+  </div>
+  </div>
+  ))}
+  </div>
+  )}
+  </TabsContent>
+
+  {/* ---------- products ---------- */}
           <TabsContent value="store" className="mt-5">
+            {/* ---------- products ---------- */}
             <CategoriesManager
               passcode={passcode}
               categories={categories}
@@ -291,7 +331,7 @@ function AdminDashboard({ passcode }: { passcode: string }) {
                             toast.success("تم حذف المنتج");
                             void reloadProducts();
                           } catch (error) {
-                            toast.error(error instanceof Error ? error.message : "تعذّر الحذف");
+                            toast.error(error instanceof Error ? error.message : "تعذّر الح��ف");
                           }
                         }}
                       >
@@ -389,12 +429,6 @@ function AdminDashboard({ passcode }: { passcode: string }) {
         </Tabs>
       </main>
 
-      <PlanDialog
-        passcode={passcode}
-        booking={editingPlan}
-        onClose={() => setEditingPlan(null)}
-        onSaved={reloadBookings}
-      />
       <ProductDialog
         passcode={passcode}
         product={editingProduct}
@@ -449,189 +483,6 @@ function EmptyState({
   );
 }
 
-function PlanDialog({
-  passcode,
-  booking,
-  onClose,
-  onSaved,
-}: {
-  passcode: string;
-  booking: Booking | null;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
-  const save = useServerFn(savePlan);
-  const [doses, setDoses] = useState<VaccineDose[]>([]);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (booking) setDoses(booking.plan?.doses ?? []);
-  }, [booking]);
-
-  function update(id: string, patch: Partial<VaccineDose>) {
-    setDoses((d) => d.map((x) => (x.id === id ? { ...x, ...patch } : x)));
-  }
-
-  async function submit() {
-    if (!booking) return;
-    if (doses.some((d) => !d.vaccine.trim() || !d.date)) {
-      toast.error("أكمل نوع التطعيم وتاريخ كل جرعة");
-      return;
-    }
-    const sorted = [...doses].sort((a, b) => a.date.localeCompare(b.date));
-    setSaving(true);
-    try {
-      await save({
-        data: { passcode, id: booking.id, plan: sorted.length ? { doses: sorted } : null },
-      });
-      toast.success("تم حفظ خطة التطعيم");
-      onSaved();
-      onClose();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "تعذّر حفظ الخطة");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <Dialog open={Boolean(booking)} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto rounded-3xl">
-        <DialogHeader>
-          <DialogTitle className="text-right">
-            خطة التطعيم{" "}
-            {booking
-              ? `— ${booking.catName || animalLabel(booking.animalType, booking.animalOther)}`
-              : ""}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">عدد الجرعات: {doses.length}</p>
-            <Button
-              size="sm"
-              variant="outline"
-              className="rounded-2xl"
-              onClick={() =>
-                setDoses((d) => [
-                  ...d,
-                  {
-                    id: newId(),
-                    vaccine: "",
-                    date: "",
-                    intervalMonths: DEFAULT_INTERVAL_MONTHS,
-                    nextDueDate: "",
-                  },
-                ])
-              }
-            >
-              <Plus className="size-4" /> إضافة جرعة
-            </Button>
-          </div>
-
-          {doses.length === 0 ? (
-            <p className="rounded-2xl bg-muted p-4 text-center text-sm text-muted-foreground">
-              لا توجد جرعات، أضف الجرعة الأولى.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {doses.map((d, i) => (
-                <div key={d.id} className="rounded-2xl border border-border p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold">الجرعة {i + 1}</span>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      aria-label={`حذف الجرعة ${i + 1}`}
-                      className="min-h-11 min-w-11 rounded-2xl text-destructive"
-                      onClick={() => setDoses((prev) => prev.filter((x) => x.id !== d.id))}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor={`vaccine-${d.id}`}>نوع التطعيم</Label>
-                      <Input
-                        id={`vaccine-${d.id}`}
-                        value={d.vaccine}
-                        maxLength={60}
-                        onChange={(e) => update(d.id, { vaccine: e.target.value })}
-                        className="rounded-2xl"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`date-${d.id}`}>تاريخ الجرعة</Label>
-                      <Input
-                        id={`date-${d.id}`}
-                        type="date"
-                        value={d.date}
-                        onChange={(e) => {
-                          const date = e.target.value;
-                          const months = d.intervalMonths ?? DEFAULT_INTERVAL_MONTHS;
-                          update(d.id, {
-                            date,
-                            intervalMonths: months,
-                            nextDueDate: addMonths(date, months),
-                          });
-                        }}
-                        className="rounded-2xl"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>مدة التذكير القادم</Label>
-                      <Select
-                        value={String(d.intervalMonths ?? DEFAULT_INTERVAL_MONTHS)}
-                        onValueChange={(value) => {
-                          const months = Number(value);
-                          update(d.id, {
-                            intervalMonths: months,
-                            nextDueDate: addMonths(d.date, months),
-                          });
-                        }}
-                      >
-                        <SelectTrigger className="rounded-2xl">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DOSE_INTERVALS.map((opt) => (
-                            <SelectItem key={opt.value} value={String(opt.value)}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`next-${d.id}`}>الجرعة القادمة (تلقائي)</Label>
-                      <Input
-                        id={`next-${d.id}`}
-                        type="date"
-                        value={d.nextDueDate ?? ""}
-                        onChange={(e) => update(d.id, { nextDueDate: e.target.value })}
-                        className="rounded-2xl"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <DialogFooter className="gap-2">
-          <Button variant="outline" className="rounded-2xl" onClick={onClose}>
-            إلغاء
-          </Button>
-          <Button className="rounded-2xl" disabled={saving} onClick={submit}>
-            {saving ? <Loader2 className="size-4 animate-spin" /> : "حفظ الخطة"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 function ProductDialog({
   passcode,

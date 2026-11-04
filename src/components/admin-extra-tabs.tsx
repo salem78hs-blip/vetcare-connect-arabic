@@ -1,76 +1,12 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Pencil, PawPrint, Phone, Plus, Tags, Trash2, X } from "lucide-react";
-import { toast } from "sonner";
+import { Check, Pencil, Plus, Tags, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { animalLabel } from "@/lib/clinic";
-import { formatDate, type Booking } from "@/lib/bookings";
+import { toast } from "sonner";
 import { deleteCategory, saveCategory } from "@/lib/store.functions";
 import type { Category } from "@/lib/store";
-
-export function PetRecords({ bookings }: { bookings: Booking[] | null }) {
-  const [q, setQ] = useState("");
-  const owners = useMemo(() => {
-    const map = new Map<string, { name: string; phone: string; visits: Booking[] }>();
-    for (const b of bookings ?? []) {
-      const o = map.get(b.phone) ?? { name: b.ownerName, phone: b.phone, visits: [] };
-      o.visits.push(b);
-      map.set(b.phone, o);
-    }
-    const term = q.trim();
-    return [...map.values()].filter(
-      (o) => !term || o.name.includes(term) || o.phone.includes(term) ||
-        o.visits.some((v) => v.catName.includes(term)),
-    );
-  }, [bookings, q]);
-
-  if (bookings === null)
-    return <div className="h-32 animate-pulse rounded-2xl bg-muted" />;
-
-  return (
-    <div className="space-y-4">
-      <Input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="ابحث باسم المالك أو الهاتف أو اسم الحيوان"
-        className="rounded-2xl"
-      />
-      {owners.length === 0 ? (
-        <p className="rounded-2xl border border-dashed p-10 text-center text-muted-foreground">
-          لا توجد سجلات بعد
-        </p>
-      ) : (
-        <div className="grid gap-3 md:grid-cols-2">
-          {owners.map((o) => (
-            <div key={o.phone} className="rounded-2xl border bg-card p-4 shadow-sm">
-              <div className="mb-3 flex items-center justify-between gap-2">
-                <p className="font-bold">{o.name}</p>
-                <span className="flex items-center gap-1 text-sm text-muted-foreground" dir="ltr">
-                  <Phone className="size-3.5" /> {o.phone}
-                </span>
-              </div>
-              <ul className="space-y-2">
-                {o.visits.map((v) => (
-                  <li key={v.id} className="flex items-center justify-between gap-2 rounded-xl bg-muted/60 px-3 py-2 text-sm">
-                    <span className="flex items-center gap-2">
-                      <PawPrint className="size-4 text-primary" />
-                      {v.catName || "بدون اسم"} · {animalLabel(v.animalType, v.animalOther)}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {formatDate(v.date)} · {v.plan?.doses.length ?? 0} جرعة
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function CategoriesManager({
   passcode,
@@ -135,7 +71,10 @@ export function CategoriesManager({
         <ul className="flex flex-wrap gap-2">
           {categories.map((c) =>
             editId === c.id ? (
-              <li key={c.id} className="flex items-center gap-1 rounded-full border bg-background p-1">
+              <li
+                key={c.id}
+                className="flex items-center gap-1 rounded-full border bg-background p-1"
+              >
                 <Input
                   value={editName}
                   autoFocus
@@ -149,18 +88,32 @@ export function CategoriesManager({
                   aria-label="حفظ القسم"
                   disabled={busy}
                   onClick={async () => {
-                    if (await run(() => save({ data: { passcode, id: c.id, name: editName } }), "تم تعديل القسم"))
+                    if (
+                      await run(
+                        () => save({ data: { passcode, id: c.id, name: editName } }),
+                        "تم تعديل القسم",
+                      )
+                    )
                       setEditId(null);
                   }}
                 >
                   <Check className="size-4" />
                 </Button>
-                <Button size="icon" variant="ghost" className="size-8 rounded-full" aria-label="إلغاء" onClick={() => setEditId(null)}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 rounded-full"
+                  aria-label="إلغاء"
+                  onClick={() => setEditId(null)}
+                >
                   <X className="size-4" />
                 </Button>
               </li>
             ) : (
-              <li key={c.id} className="flex items-center gap-1 rounded-full bg-secondary py-1 pe-1 ps-4 text-sm font-bold">
+              <li
+                key={c.id}
+                className="flex items-center gap-1 rounded-full bg-secondary py-1 pe-1 ps-4 text-sm font-bold"
+              >
                 {c.name}
                 <Button
                   size="icon"

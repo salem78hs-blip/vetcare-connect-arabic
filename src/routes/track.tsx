@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarX, Loader2, Phone, Search, Syringe } from "lucide-react";
+import { CalendarX, Loader2, Phone, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -17,13 +17,12 @@ export const Route = createFileRoute("/track")({
       { title: "متابعة حالة الأليف | VetOna" },
       {
         name: "description",
-        content:
-          "أدخل رقم هاتفك لمتابعة مواعيدك في عيادة VetOna البيطرية ومعرفة جرعات التطعيم القادمة وتواريخها.",
+        content: "أدخل رقم هاتفك لمتابعة مواعيدك في عيادة VetOna البيطرية.",
       },
       { property: "og:title", content: "متابعة حالة الأليف | VetOna" },
       {
         property: "og:description",
-        content: "تابع مواعيدك وجرعات التطعيم برقم الهاتف فقط.",
+        content: "تابع مواعيدك برقم الهاتف فقط.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -85,7 +84,7 @@ function TrackPage() {
       <main className="mx-auto max-w-3xl px-4 py-8 pb-20">
         <h1 className="text-2xl font-extrabold sm:text-3xl">تابع مواعيد حيوانك</h1>
         <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-          أدخل رقم الهاتف الذي حجزت به، وستظهر مواعيدك وجرعات التطعيم المحددة لك من العيادة.
+          أدخل رقم الهاتف الذي حجزت به، وستظهر مواعيدك المسجلة في العيادة.
         </p>
 
         <form onSubmit={submit} className="card-soft mt-6 space-y-4 p-5 sm:p-6">
@@ -147,32 +146,6 @@ function TrackPage() {
                     </span>
                   </div>
 
-                  <div className="mt-4 rounded-2xl bg-muted p-4">
-                    <h3 className="flex items-center gap-2 text-xs font-bold">
-                      <Syringe className="size-4 text-primary" /> خطة التطعيم
-                    </h3>
-                    {b.plan && b.plan.doses.length > 0 ? (
-                      <ol className="mt-3 space-y-2">
-                        {b.plan.doses.map((d, i) => (
-                          <li
-                            key={d.id || `${d.vaccine}-${i}`}
-                            className="flex items-center justify-between gap-3 rounded-xl bg-card px-3 py-2 text-xs"
-                          >
-                            <span className="min-w-0 truncate font-semibold">
-                              {i + 1}. {d.vaccine}
-                            </span>
-                            <span className="shrink-0 text-muted-foreground">
-                              {formatDate(d.date)}
-                            </span>
-                          </li>
-                        ))}
-                      </ol>
-                    ) : (
-                      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                        لم تُحدَّد الجرعات بعد، سيحددها الطبيب بعد الزيارة.
-                      </p>
-                    )}
-                  </div>
                 </article>
               ))
             )}

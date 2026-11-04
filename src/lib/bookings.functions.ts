@@ -7,6 +7,7 @@ type Row = {
   id: string;
   owner_name: string;
   phone: string;
+  service_type: string;
   animal_type: string;
   animal_other: string | null;
   pet_name: string | null;
@@ -21,6 +22,7 @@ function toBooking(row: Row): Booking {
     id: row.id,
     ownerName: row.owner_name,
     phone: row.phone,
+    serviceType: row.service_type as Booking["serviceType"],
     animalType: row.animal_type,
     animalOther: row.animal_other ?? "",
     catName: row.pet_name ?? "",
@@ -31,18 +33,20 @@ function toBooking(row: Row): Booking {
 }
 
 const COLUMNS =
-  "id, owner_name, phone, animal_type, animal_other, pet_name, booking_date, vaccination_plan, created_at";
+  "id, owner_name, phone, service_type, animal_type, animal_other, pet_name, booking_date, vaccination_plan, created_at";
 
 export const createBooking = createServerFn({ method: "POST" })
   .inputValidator((input: BookingInput) => {
     const ownerName = String(input?.ownerName ?? "").trim();
     const phone = normalizePhone(String(input?.phone ?? ""));
+    const serviceType = String(input?.serviceType ?? "").trim();
     const animalType = String(input?.animalType ?? "").trim();
     const animalOther = String(input?.animalOther ?? "").trim();
     const catName = String(input?.catName ?? "").trim();
     const date = String(input?.date ?? "").trim();
 
     if (ownerName.length < 2) throw new Error("اكتب اسم المالك");
+    if (!["medical_checkup", "grooming_bathing"].includes(serviceType)) throw new Error("اختر نوع الخدمة");
     if (!/^07\d{9}$/.test(phone)) throw new Error("رقم الهاتف يجب أن يكون 11 رقماً ويبدأ بـ 07");
     if (!["cat", "dog", "bird", "other"].includes(animalType)) throw new Error("اختر نوع الحيوان");
     if (animalType === "other" && animalOther.length < 2) throw new Error("اكتب نوع الحيوان");
@@ -51,6 +55,7 @@ export const createBooking = createServerFn({ method: "POST" })
     return {
       ownerName: ownerName.slice(0, 60),
       phone,
+      serviceType: serviceType as BookingInput["serviceType"],
       animalType,
       animalOther: animalType === "other" ? animalOther.slice(0, 40) : "",
       catName: catName.slice(0, 40),
@@ -64,6 +69,7 @@ export const createBooking = createServerFn({ method: "POST" })
       .insert({
         owner_name: data.ownerName,
         phone: data.phone,
+        service_type: data.serviceType,
         animal_type: data.animalType,
         animal_other: data.animalOther || null,
         pet_name: data.catName || null,

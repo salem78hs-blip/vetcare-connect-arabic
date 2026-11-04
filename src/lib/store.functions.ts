@@ -328,8 +328,9 @@ export const listCategories = createServerFn({ method: "GET" }).handler(async ()
 
 export const saveCategory = createServerFn({ method: "POST" })
   .inputValidator((input: { passcode: string; id?: string | null; name: string }) => {
-    const name = String(input?.name ?? "").trim();
-    if (name.length < 2) throw new Error("اكتب اسم القسم");
+      const name = String(input?.name ?? "").trim();
+      if (name.length < 2) throw new Error("اكتب اسم القسم");
+      if (name.length > 40) throw new Error("اسم القسم طويل جداً");
     return {
       passcode: String(input?.passcode ?? ""),
       id: input?.id ? String(input.id) : null,

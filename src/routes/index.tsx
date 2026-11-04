@@ -16,7 +16,6 @@ import {
   ShieldCheck,
   ShoppingBag,
   Stethoscope,
-  Syringe,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createBooking } from "@/lib/bookings.functions";
-import { formatDate } from "@/lib/bookings";
+import { formatDate, toWhatsappNumber } from "@/lib/bookings";
 import { ANIMAL_TYPES, CLINIC, animalLabel } from "@/lib/clinic";
 
 export const Route = createFileRoute("/")({
@@ -34,7 +33,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "عيادة VetOna البيطرية: احجز موعد الفحص أو التطعيم لقطتك أو كلبك أو طيورك بإدخال اسمك ورقم هاتفك والتاريخ.",
+          "عيادة VetOna البيطرية: احجز موعد الفحص لقطتك أو كلبك أو طيورك بإدخال اسمك ورقم هاتفك والتاريخ.",
       },
       { property: "og:title", content: "VetOna | عيادة بيطرية" },
       { property: "og:description", content: "حجز بسيط وسريع في عيادة VetOna البيطرية." },
@@ -48,6 +47,7 @@ export const Route = createFileRoute("/")({
 const empty = {
   ownerName: "",
   phone: "",
+  serviceType: "",
   animalType: "cat",
   animalOther: "",
   petName: "",
@@ -71,7 +71,9 @@ function HomePage() {
         ? "اكتب اسم المالك"
         : !/^07\d{9}$/.test(form.phone.trim())
           ? "رقم الهاتف يجب أن يكون 11 رقماً ويبدأ بـ 07"
-            : !form.animalType
+            : !form.serviceType
+              ? "اختر نوع الخدمة"
+              : !form.animalType
               ? "اختر نوع الحيوان"
               : form.animalType === "other" && form.animalOther.trim().length < 2
                 ? "اكتب نوع الحيوان"
@@ -90,15 +92,27 @@ function HomePage() {
         data: {
           ownerName: snapshot.ownerName.trim(),
           phone: snapshot.phone.trim(),
+          serviceType: snapshot.serviceType as "medical_checkup" | "grooming_bathing",
           animalType: snapshot.animalType,
           animalOther: snapshot.animalType === "other" ? snapshot.animalOther.trim() : "",
           catName: snapshot.petName.trim(),
           date: snapshot.date,
         },
       });
-      setDone(snapshot);
-      setForm(empty);
-      toast.success("تم تسجيل الحجز");
+      const serviceLabel = snapshot.serviceType === "medical_checkup" ? "فحص طبي" : "التحميم والعناية";
+      const animalText = animalLabel(snapshot.animalType, snapshot.animalOther);
+      const message = [
+        "مرحباً، أود تأكيد هذا الحجز لدى عيادة VetOna:",
+        `اسم العميل: ${snapshot.ownerName.trim()}`,
+        `رقم الهاتف: ${snapshot.phone.trim()}`,
+        `نوع الحيوان: ${animalText}`,
+        `اسم الحيوان: ${snapshot.petName.trim() || "غير مذكور"}`,
+        `تاريخ الحجز: ${formatDate(snapshot.date)}`,
+        `نوع الخدمة: ${serviceLabel}`,
+      ].join("\\n");
+      window.location.assign(
+        `https://wa.me/${toWhatsappNumber(CLINIC.phones[0])}?text=${encodeURIComponent(message)}`,
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "تعذّر حفظ الحجز، حاول مرة أخرى");
     } finally {
@@ -157,7 +171,7 @@ function HomePage() {
               موعد لحيوانك <span className="text-brand-gradient">بخطوة واحدة</span>
             </h1>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:text-base">
-              فحص، تطعيم، ومتابعة صحية في عيادة VetOna. أكمل الحقول وسنتواصل معك لتأكيد الموعد.
+              فحص ومتابعة صحية في عيادة VetOna. أكمل الحقول وسنتواصل معك لتأكيد الموعد.
             </p>
             <p className="mt-4 flex items-center gap-2 text-sm font-medium text-foreground">
               <Clock className="size-4 shrink-0 text-primary" /> استقبال يومي — يفضّل الحجز المسبق
@@ -187,7 +201,6 @@ function HomePage() {
         <section className="mt-8 grid gap-3 sm:grid-cols-3">
           {[
             { icon: Stethoscope, title: "فحص سريري", text: "تشخيص دقيق ومتابعة حالة حيوانك" },
-            { icon: Syringe, title: "تطعيمات", text: "جدول جرعات منظّم مع تذكير بالموعد" },
             { icon: HeartPulse, title: "رعاية ومتابعة", text: "إرشادات تغذية وعناية بعد الزيارة" },
           ].map((f) => (
             <div
@@ -211,7 +224,7 @@ function HomePage() {
               </span>
               <h2 className="mt-4 text-lg font-bold">تم استلام الحجز</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                {animalLabel(done.animalType, done.animalOther)}
+                {done.serviceType === "medical_checkup" ? "فحص طبي" : "التحميم والعناية"} — {animalLabel(done.animalType, done.animalOther)}
                 {done.petName ? ` — ${done.petName}` : ""} — {formatDate(done.date)}
               </p>
               <Button className="mt-6 rounded-2xl" onClick={() => setDone(null)}>
@@ -245,6 +258,30 @@ function HomePage() {
                   className="rounded-2xl"
                 />
               </div>
+
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-medium">نوع الخدمة</legend>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {[
+                    { value: "medical_checkup", label: "فحص طبي" },
+                    { value: "grooming_bathing", label: "التحميم والعناية" },
+                  ].map((service) => (
+                    <button
+                      key={service.value}
+                      type="button"
+                      onClick={() => set("serviceType", service.value)}
+                      aria-pressed={form.serviceType === service.value}
+                      className={`min-h-11 rounded-2xl border px-3 text-sm font-semibold transition-colors ${
+                        form.serviceType === service.value
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-input bg-card text-foreground hover:bg-accent"
+                      }`}
+                    >
+                      {service.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
 
               <fieldset className="space-y-2">
                 <legend className="text-sm font-medium">نوع الحيوان</legend>
@@ -309,7 +346,7 @@ function HomePage() {
               <Button type="submit" size="lg" disabled={saving} className="w-full rounded-2xl">
                 {saving ? (
                   <>
-                    <Loader2 className="size-5 animate-spin" /> جارٍ التسجيل…
+                    <Loader2 className="size-5 animate-spin" /> جارٍ التسجيل���
                   </>
                 ) : (
                   <>
