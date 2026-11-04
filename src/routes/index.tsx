@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createBooking } from "@/lib/bookings.functions";
-import { formatDate } from "@/lib/bookings";
+import { formatDate, toWhatsappNumber } from "@/lib/bookings";
 import { ANIMAL_TYPES, CLINIC, animalLabel } from "@/lib/clinic";
 
 export const Route = createFileRoute("/")({
@@ -110,7 +110,9 @@ function HomePage() {
         `تاريخ الحجز: ${formatDate(snapshot.date)}`,
         `نوع الخدمة: ${serviceLabel}`,
       ].join("\\n");
-      window.location.assign(`https://wa.me/964774769510?text=${encodeURIComponent(message)}`);
+      window.location.assign(
+        `https://wa.me/${toWhatsappNumber(CLINIC.phones[0])}?text=${encodeURIComponent(message)}`,
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "تعذّر حفظ الحجز، حاول مرة أخرى");
     } finally {
@@ -344,7 +346,7 @@ function HomePage() {
               <Button type="submit" size="lg" disabled={saving} className="w-full rounded-2xl">
                 {saving ? (
                   <>
-                    <Loader2 className="size-5 animate-spin" /> جارٍ التسجيل…
+                    <Loader2 className="size-5 animate-spin" /> جارٍ التسجيل���
                   </>
                 ) : (
                   <>
