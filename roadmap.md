@@ -19,6 +19,6 @@
 
 ## Booking condition description
 
-- [ ] Make service selection optional and keep condition notes visible.
-- [ ] Add bookings service_description storage with validated inputs and include it in the direct WhatsApp message.
-- [ ] Verify a no-service booking, description readback, and WhatsApp destination.
+- [x] Make service selection optional and keep condition notes visible.
+- [x] Add bookings service_description storage with validated inputs and include it in the direct WhatsApp message.
+- [x] Verify a no-service booking, description readback, and WhatsApp destination (eight tests passed; desktop/mobile and protected admin verified; test booking removed).
