@@ -5,28 +5,27 @@ import { DEFAULT_INTERVAL_MONTHS, addMonths, normalizePhone, bookingInputSchema 
 
 type Row = {
   id: string;
-  owner_name: string;
-  phone: string;
-  service_type: string;
+  client_name: string;
+  phone_number: string;
   service_description: string;
-  animal_type: string;
-  animal_other: string | null;
+  pet_type: string;
   pet_name: string | null;
   booking_date: string;
-  vaccination_plan: unknown;
+  status: string;
   created_at: string;
+  vaccination_plan?: unknown;
 };
 
 function toBooking(row: Row): Booking {
   const plan = row.vaccination_plan as VaccinationPlan | null;
   return {
     id: row.id,
-    ownerName: row.owner_name,
-    phone: row.phone,
-    serviceType: row.service_type as Booking["serviceType"],
+    ownerName: row.client_name,
+    phone: row.phone_number,
+    serviceType: "medical",
     serviceDescription: row.service_description,
-    animalType: row.animal_type,
-    animalOther: row.animal_other ?? "",
+    animalType: row.pet_type,
+    animalOther: "",
     catName: row.pet_name ?? "",
     date: row.booking_date,
     createdAt: row.created_at,
@@ -35,7 +34,7 @@ function toBooking(row: Row): Booking {
 }
 
 const COLUMNS =
-  "id, owner_name, phone, service_type, service_description, animal_type, animal_other, pet_name, booking_date, vaccination_plan, created_at";
+  "id, client_name, phone_number, service_description, pet_type, pet_name, booking_date, status, created_at";
 
 function isMissingBookingsSchema(error: { code?: string; message?: string } | null) {
   return (
@@ -58,14 +57,13 @@ export const createBooking = createServerFn({ method: "POST" })
     const { data: row, error } = await supabaseAdmin
       .from("bookings")
       .insert({
-        owner_name: data.ownerName,
-        phone: data.phone,
-        service_type: data.serviceType,
+        client_name: data.ownerName,
+        phone_number: data.phone,
         service_description: data.serviceDescription,
-        animal_type: data.animalType,
-        animal_other: data.animalOther || null,
-        pet_name: data.catName || null,
+        pet_type: data.animalOther ? `${data.animalType}: ${data.animalOther}` : data.animalType,
+        pet_name: data.catName || "",
         booking_date: data.date,
+        status: "pending",
       })
       .select(COLUMNS)
       .single();
@@ -85,7 +83,7 @@ export const lookupBookings = createServerFn({ method: "POST" })
     const { data: rows, error } = await supabaseAdmin
       .from("bookings")
       .select(COLUMNS)
-      .eq("phone", data.phone)
+      .eq("phone_number", data.phone)
       .order("booking_date", { ascending: false });
 
     if (error) {
@@ -166,7 +164,7 @@ export const savePlan = createServerFn({ method: "POST" })
       .update({ vaccination_plan: data.plan })
       .eq("id", data.id);
 
-    if (error) throw new Error("تعذّر حفظ خطة التطعيم");
+    if (error) throw new Error("تعذّر حفظ ��طة التطعيم");
     return { ok: true };
   });
 

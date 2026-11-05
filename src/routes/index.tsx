@@ -78,19 +78,18 @@ function HomePage() {
     const whatsappUrl = bookingWhatsappUrl(result.data);
 
     setSaving(true);
-    setForm(empty);
-    setDone(snapshot);
-    toast.success("تم تجهيز الحجز، سيتم فتح واتساب الآن");
-    window.location.assign(whatsappUrl);
-    setSaving(false);
-
-    void (async () => {
-      try {
-        await save({ data: result.data });
-      } catch {
-        // WhatsApp confirmation is intentionally independent from database availability.
-      }
-    })();
+    try {
+      await save({ data: result.data });
+    } catch (error) {
+      console.error("[booking] Supabase insert failed", error);
+      toast.error("تعذر حفظ الحجز في النظام، سيتم فتح واتساب على أي حال");
+    } finally {
+      setForm(empty);
+      setDone(snapshot);
+      setSaving(false);
+      toast.success("تم إرسال الحجز، سيتم فتح واتساب الآن");
+      window.location.assign(whatsappUrl);
+    }
   }
 
   return (
