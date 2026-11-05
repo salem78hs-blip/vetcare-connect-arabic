@@ -74,17 +74,23 @@ function HomePage() {
       return;
     }
 
-    setSaving(true);
     const snapshot = form;
-    try {
-      const booking = await save({ data: result.data });
-      setDone(snapshot);
-      window.location.assign(bookingWhatsappUrl({ ...result.data, serviceDescription: booking.serviceDescription }));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "تعذّر حفظ الحجز، حاول مرة أخرى");
-    } finally {
-      setSaving(false);
-    }
+    const whatsappUrl = bookingWhatsappUrl(result.data);
+
+    setSaving(true);
+    setForm(empty);
+    setDone(snapshot);
+    toast.success("تم تجهيز الحجز، سيتم فتح واتساب الآن");
+    window.location.assign(whatsappUrl);
+    setSaving(false);
+
+    void (async () => {
+      try {
+        await save({ data: result.data });
+      } catch {
+        // WhatsApp confirmation is intentionally independent from database availability.
+      }
+    })();
   }
 
   return (
