@@ -92,7 +92,7 @@ function HomePage() {
     setDone(snapshot);
     setSaving(false);
     toast.success("تم حفظ الحجز، سيتم فتح واتساب الآن");
-    window.location.assign(whatsappUrl);
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   }
 
   return (
