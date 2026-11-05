@@ -63,7 +63,7 @@ export const bookingInputSchema = z.object({
   ownerName: z.string().trim().min(2, "اكتب اسم المالك").max(60, "اسم المالك طويل جداً"),
   phone: z.string().transform(normalizePhone).pipe(z.string().regex(/^07\d{9}$/, "رقم الهاتف يجب أن يكون 11 رقماً ويبدأ بـ 07")),
   serviceType: z.enum(["", "medical_checkup", "grooming_bathing"], { message: "نوع الخدمة غير صحيح" }).optional().default(""),
-  serviceDescription: z.string({ error: "اكتب وصف الحالة" }).trim().min(1, "اكتب وصف الحالة").max(1000, "وصف الحالة يجب ألا يتجاوز 1000 حرف"),
+  serviceDescription: z.string({ required_error: "اكتب وصف الحالة" }).trim().min(1, "اكتب وصف الحالة").max(1000, "وصف الحالة يجب ألا يتجاوز 1000 حرف"),
   animalType: z.enum(["cat", "dog", "bird", "other"], { message: "اختر نوع الحيوان" }),
   animalOther: z.string().trim().max(40).optional().default(""),
   catName: z.string().trim().max(40).optional().default(""),
