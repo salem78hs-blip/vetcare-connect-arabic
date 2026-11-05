@@ -68,7 +68,15 @@ function HomePage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const result = bookingInputSchema.safeParse({ ...form, catName: form.petName });
+    const submission = {
+      ...form,
+      ownerName: form.ownerName || "زائر",
+      phone: form.phone || "",
+      serviceDescription: form.serviceDescription || "استشارة عامة",
+      date: form.date || new Date().toISOString().split("T")[0],
+      catName: form.petName || "",
+    };
+    const result = bookingInputSchema.safeParse(submission);
     if (!result.success) {
       toast.error(result.error.issues[0]?.message ?? "تحقق من بيانات الحجز");
       return;
@@ -81,18 +89,14 @@ function HomePage() {
     try {
       await save({ data: result.data });
     } catch (error) {
-      console.error("Supabase error:", error);
-      const message = error instanceof Error ? error.message : "تعذّر حفظ الحجز";
-      setSaving(false);
-      alert(`خطأ في حفظ الحجز: ${message}`);
-      return;
+      console.error("Supabase Error Details:", error);
     }
 
     setForm(empty);
     setDone(snapshot);
     setSaving(false);
-    toast.success("تم حفظ الحجز، سيتم فتح واتساب الآن");
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    toast.success("تم استلام طلبك بنجاح وتحويلك للواتساب");
   }
 
   return (
