@@ -22,3 +22,9 @@
 - [x] Make service selection optional and keep condition notes visible.
 - [x] Add bookings service_description storage with validated inputs and include it in the direct WhatsApp message.
 - [x] Verify a no-service booking, description readback, and WhatsApp destination (eight tests passed; desktop/mobile and protected admin verified; test booking removed).
+
+## Mandatory condition description
+
+- [x] Remove the service-choice buttons; keep one required "وصف الحالة" field with the hint (فحص طبي، تحميم، أخرى).
+- [x] Fix the Zod build error blocking the preview; typecheck clean and all tests pass.
+- [x] Verify in browser: empty description blocks submission; with a description the booking saves and opens WhatsApp to 07760198800 containing the text; test booking deleted.
