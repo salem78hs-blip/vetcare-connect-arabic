@@ -81,15 +81,18 @@ function HomePage() {
     try {
       await save({ data: result.data });
     } catch (error) {
-      console.error("[booking] Supabase insert failed", error);
-      toast.error("تعذر حفظ الحجز في النظام، سيتم فتح واتساب على أي حال");
-    } finally {
-      setForm(empty);
-      setDone(snapshot);
+      console.error("Supabase error:", error);
+      const message = error instanceof Error ? error.message : "تعذّر حفظ الحجز";
       setSaving(false);
-      toast.success("تم إرسال الحجز، سيتم فتح واتساب الآن");
-      window.location.assign(whatsappUrl);
+      alert(`خطأ في حفظ الحجز: ${message}`);
+      return;
     }
+
+    setForm(empty);
+    setDone(snapshot);
+    setSaving(false);
+    toast.success("تم حفظ الحجز، سيتم فتح واتساب الآن");
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   }
 
   return (
