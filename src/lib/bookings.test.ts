@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
-import { strictEqual, throws } from "node:assert";
-import { bookingInputSchema, bookingWhatsappUrl } from "./bookings";
+import { deepStrictEqual, strictEqual, throws } from "node:assert";
+import { bookingInputSchema, bookingInsertPayload, bookingWhatsappUrl } from "./bookings";
 
 const input = { ownerName: "سالم", phone: "07700000001", animalType: "cat" as const, date: "2026-11-05", serviceDescription: "فحص طبي" };
 
@@ -27,8 +27,7 @@ describe("booking condition notes", () => {
       throws(() => bookingInputSchema.parse({ ...input, ...invalid }));
     }
   });
-  it("rejects invalid services and excessively long descriptions", () => {
-    strictEqual(bookingInputSchema.safeParse({ ...input, serviceType: "unknown" }).success, false);
+  it("rejects invalid services and excessively long descriptions", () => {    strictEqual(bookingInputSchema.safeParse({ ...input, serviceType: "unknown" }).success, false);
     strictEqual(bookingInputSchema.safeParse({ ...input, serviceDescription: "ا".repeat(1001) }).success, false);
   });
   it("sends condition notes to the original primary clinic WhatsApp number", () => {
