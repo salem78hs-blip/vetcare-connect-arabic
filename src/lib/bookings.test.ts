@@ -27,7 +27,8 @@ describe("booking condition notes", () => {
       throws(() => bookingInputSchema.parse({ ...input, ...invalid }));
     }
   });
-  it("rejects invalid services and excessively long descriptions", () => {    strictEqual(bookingInputSchema.safeParse({ ...input, serviceType: "unknown" }).success, false);
+  it("rejects invalid services and excessively long descriptions", () => {
+    strictEqual(bookingInputSchema.safeParse({ ...input, serviceType: "unknown" }).success, false);
     strictEqual(bookingInputSchema.safeParse({ ...input, serviceDescription: "ا".repeat(1001) }).success, false);
   });
   it("sends condition notes to the original primary clinic WhatsApp number", () => {
@@ -37,5 +38,35 @@ describe("booking condition notes", () => {
     strictEqual(url.searchParams.get("text")?.includes(`وصف الحالة / ملاحظات إضافية: ${description}`), true);
     strictEqual(url.searchParams.get("text")?.includes("نوع الخدمة:"), false);
     strictEqual(url.searchParams.get("text")?.includes("\\n"), false);
+  });
+  it("inserts using the exact bookings column names", () => {
+    const payload = bookingInsertPayload(bookingInputSchema.parse({ ...input, animalType: "dog" }));
+    deepStrictEqual(Object.keys(payload).sort(), [
+      "animal_other",
+      "animal_type",
+      "booking_date",
+      "owner_name",
+      "phone",
+      "pet_name",
+      "service_description",
+      "service_type",
+    ]);
+    strictEqual(payload.owner_name, "سالم");
+    strictEqual(payload.phone, "07700000001");
+    strictEqual(payload.animal_type, "dog");
+    strictEqual(payload.animal_other, null);
+    strictEqual(payload.pet_name, null);
+    strictEqual(payload.booking_date, "2026-11-05");
+    strictEqual(payload.service_description, "فحص طبي");
+    for (const forbidden of ["name", "client_name", "phone_number", "pet_type", "status"]) {
+      strictEqual(forbidden in payload, false);
+    }
+  });
+  it("stores the written animal type only when other is chosen", () => {
+    const payload = bookingInsertPayload(
+      bookingInputSchema.parse({ ...input, animalType: "other", animalOther: "أرنب" }),
+    );
+    strictEqual(payload.animal_type, "other");
+    strictEqual(payload.animal_other, "أرنب");
   });
 });
