@@ -79,6 +79,24 @@ export const bookingInputSchema = z.object({
 
 export type BookingInput = z.input<typeof bookingInputSchema>;
 
+/**
+ * Maps a validated booking onto the exact `bookings` table columns
+ * (owner_name, phone, animal_type, ...). Shared by the public form and the
+ * server function so both write the same shape the database accepts.
+ */
+export function bookingInsertPayload(booking: z.output<typeof bookingInputSchema>) {
+  return {
+    owner_name: booking.ownerName,
+    phone: booking.phone,
+    animal_type: booking.animalType,
+    animal_other: booking.animalType === "other" ? booking.animalOther : null,
+    pet_name: booking.catName || null,
+    booking_date: booking.date,
+    service_type: booking.serviceType,
+    service_description: booking.serviceDescription,
+  };
+}
+
 export function bookingWhatsappUrl(input: BookingInput) {
   const booking = bookingInputSchema.parse(input);
   const lines = [
