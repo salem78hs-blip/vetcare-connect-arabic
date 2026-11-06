@@ -89,7 +89,11 @@ function HomePage() {
     try {
       await save({ data: result.data });
     } catch (error) {
-      console.error("Supabase Error Details:", error);
+      console.error("SUPABASE INSERT FAILED DETAILED:", error);
+      const message = error instanceof Error ? error.message : "خطأ غير معروف";
+      setSaving(false);
+      window.alert(`خطأ قاعدة البيانات: ${message}`);
+      return;
     }
 
     setForm(empty);
