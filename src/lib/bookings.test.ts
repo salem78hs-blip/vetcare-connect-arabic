@@ -46,8 +46,8 @@ describe("booking condition notes", () => {
       "animal_type",
       "booking_date",
       "owner_name",
-      "phone",
       "pet_name",
+      "phone",
       "service_description",
       "service_type",
     ]);
