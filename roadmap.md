@@ -28,3 +28,9 @@
 - [x] Remove the service-choice buttons; keep one required "وصف الحالة" field with the hint (فحص طبي، تحميم، أخرى).
 - [x] Fix the Zod build error blocking the preview; typecheck clean and all tests pass.
 - [x] Verify in browser: empty description blocks submission; with a description the booking saves and opens WhatsApp to 07760198800 containing the text; test booking deleted.
+
+## Booking insert matches the database schema
+
+- [x] Insert with the real columns (owner_name, phone, animal_type, animal_other, pet_name, booking_date, service_type, service_description) from one shared helper used by the public form and the server function; drop client_name/phone_number/pet_type/status.
+- [x] Redirect to WhatsApp immediately after a successful insert.
+- [x] Verify: insert returns 201 and the row reads back with the correct values; WhatsApp opens on 07760198800 with the condition text; admin and tracking screens read the renamed columns.
