@@ -90,21 +90,24 @@ function HomePage() {
         {
           client_name: result.data.ownerName,
           phone_number: result.data.phone,
-          service_description: result.data.serviceDescription,
-          pet_type: result.data.animalType,
-          pet_name: result.data.petName || "",
-          booking_date: result.data.date,
+          service_description: result.data.serviceDescription || "حجز موعد",
+          booking_date: result.data.date || new Date().toISOString().split("T")[0],
         },
       ]);
 
       if (error) {
-        throw error;
+        console.error("Detailed Supabase Insert Error:", error);
+        setSaving(false);
+        window.alert(
+          `خطأ تفصيلي: ${error.message} | Details: ${error.details || "none"}`,
+        );
+        return;
       }
     } catch (error) {
-      console.error("SUPABASE INSERT FAILED DETAILED:", error);
+      console.error("Detailed Supabase Insert Error:", error);
       const message = error instanceof Error ? error.message : "خطأ غير معروف";
       setSaving(false);
-      window.alert(`خطأ قاعدة البيانات: ${message}`);
+      window.alert(`خطأ تفصيلي: ${message} | Details: none`);
       return;
     }
 
