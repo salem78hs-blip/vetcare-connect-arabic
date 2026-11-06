@@ -34,10 +34,11 @@ function createSupabaseClient() {
   const SUPABASE_URL =
     import.meta.env['VITE_SUPABASE_URL'] ||
     process.env['SUPABASE_URL'] ||
-    'https://rvmggmwkafipqukkyjmz.supabase.co';
+    'https://rextnekbzxsljfnrduqa.supabase.co';
   const SUPABASE_ANON_KEY =
     import.meta.env['VITE_SUPABASE_ANON_KEY'] ||
-    process.env['SUPABASE_ANON_KEY'];
+    process.env['SUPABASE_ANON_KEY'] ||
+    'sb_publishable_XATCOV0yVIYnvfGSAA9OvQ_uCIplnrA';
 
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     const missing = [
