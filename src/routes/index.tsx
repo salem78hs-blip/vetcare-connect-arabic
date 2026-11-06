@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import {
   CalendarCheck,
   Check,
@@ -19,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,7 +57,6 @@ const empty = {
 };
 
 function HomePage() {
-  const save = useServerFn(createBooking);
   const [form, setForm] = useState(empty);
   const [done, setDone] = useState<typeof empty | null>(null);
   const [saving, setSaving] = useState(false);
@@ -87,9 +86,26 @@ function HomePage() {
 
     setSaving(true);
     try {
-      await save({ data: result.data });
+      const { error } = await supabase.from("bookings").insert([
+        {
+          client_name: result.data.ownerName,
+          phone_number: result.data.phone,
+          service_description: result.data.serviceDescription,
+          pet_type: result.data.animalType,
+          pet_name: result.data.petName || "",
+          booking_date: result.data.date,
+        },
+      ]);
+
+      if (error) {
+        throw error;
+      }
     } catch (error) {
-      console.error("Supabase Error Details:", error);
+      console.error("SUPABASE INSERT FAILED DETAILED:", error);
+      const message = error instanceof Error ? error.message : "خطأ غير معروف";
+      setSaving(false);
+      window.alert(`خطأ قاعدة البيانات: ${message}`);
+      return;
     }
 
     setForm(empty);
@@ -179,7 +195,7 @@ function HomePage() {
 
         <section className="mt-8 grid gap-3 sm:grid-cols-3">
           {[
-            { icon: Stethoscope, title: "فحص سريري", text: "تشخيص دقيق ومتابعة حالة حيوانك" },
+            { icon: Stethoscope, title: "فحص سريري", text: "تشخيص دقيق ومتابعة حالة ح��وانك" },
             { icon: HeartPulse, title: "رعاية ومتابعة", text: "إرشادات تغذية وعناية بعد الزيارة" },
           ].map((f) => (
             <div

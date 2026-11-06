@@ -68,7 +68,10 @@ export const createBooking = createServerFn({ method: "POST" })
       .select(COLUMNS)
       .single();
 
-    if (error) throw new Error("تعذّر حفظ الحجز، حاول مرة أخرى");
+    if (error) {
+      console.error("SUPABASE INSERT FAILED DETAILED:", error);
+      throw new Error(`${error.message} (Code: ${error.code ?? "unknown"})`);
+    }
     return toBooking(row as Row);
   });
 
