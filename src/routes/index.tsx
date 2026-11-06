@@ -23,8 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createBooking } from "@/lib/bookings.functions";
-import { bookingInputSchema, bookingWhatsappUrl, formatDate } from "@/lib/bookings";
+import { bookingInputSchema, bookingInsertPayload, bookingWhatsappUrl, formatDate } from "@/lib/bookings";
 import { ANIMAL_TYPES, CLINIC, animalLabel } from "@/lib/clinic";
 
 export const Route = createFileRoute("/")({
@@ -86,16 +85,7 @@ function HomePage() {
 
     setSaving(true);
     try {
-      const { error } = await supabase.from("bookings").insert([
-        {
-          client_name: result.data.ownerName,
-          phone_number: result.data.phone,
-          service_description: result.data.serviceDescription,
-          pet_type: result.data.animalType,
-          pet_name: result.data.petName || "",
-          booking_date: result.data.date,
-        },
-      ]);
+      const { error } = await supabase.from("bookings").insert([bookingInsertPayload(result.data)]);
 
       if (error) {
         throw error;
@@ -111,8 +101,8 @@ function HomePage() {
     setForm(empty);
     setDone(snapshot);
     setSaving(false);
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
     toast.success("تم استلام طلبك بنجاح وتحويلك للواتساب");
+    window.location.assign(whatsappUrl);
   }
 
   return (

@@ -1,17 +1,24 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import type { Booking, BookingInput, VaccinationPlan } from "@/lib/bookings";
-import { DEFAULT_INTERVAL_MONTHS, addMonths, normalizePhone, bookingInputSchema } from "@/lib/bookings";
+import {
+  DEFAULT_INTERVAL_MONTHS,
+  addMonths,
+  bookingInsertPayload,
+  bookingInputSchema,
+  normalizePhone,
+} from "@/lib/bookings";
 
 type Row = {
   id: string;
-  client_name: string;
-  phone_number: string;
-  service_description: string;
-  pet_type: string;
+  owner_name: string;
+  phone: string;
+  animal_type: string;
+  animal_other: string | null;
   pet_name: string | null;
   booking_date: string;
-  status: string;
+  service_type: string;
+  service_description: string;
   created_at: string;
   vaccination_plan?: unknown;
 };
@@ -20,12 +27,15 @@ function toBooking(row: Row): Booking {
   const plan = row.vaccination_plan as VaccinationPlan | null;
   return {
     id: row.id,
-    ownerName: row.client_name,
-    phone: row.phone_number,
-    serviceType: "medical",
+    ownerName: row.owner_name,
+    phone: row.phone,
+    serviceType:
+      row.service_type === "medical_checkup" || row.service_type === "grooming_bathing"
+        ? row.service_type
+        : "",
     serviceDescription: row.service_description,
-    animalType: row.pet_type,
-    animalOther: "",
+    animalType: row.animal_type,
+    animalOther: row.animal_other ?? "",
     catName: row.pet_name ?? "",
     date: row.booking_date,
     createdAt: row.created_at,
@@ -34,7 +44,7 @@ function toBooking(row: Row): Booking {
 }
 
 const COLUMNS =
-  "id, client_name, phone_number, service_description, pet_type, pet_name, booking_date, status, created_at";
+  "id, owner_name, phone, animal_type, animal_other, pet_name, booking_date, service_type, service_description, created_at, vaccination_plan";
 
 function isMissingBookingsSchema(error: { code?: string; message?: string } | null) {
   return (
@@ -56,15 +66,7 @@ export const createBooking = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await supabaseAdmin
       .from("bookings")
-      .insert({
-        client_name: data.ownerName,
-        phone_number: data.phone,
-        service_description: data.serviceDescription,
-        pet_type: data.animalOther ? `${data.animalType}: ${data.animalOther}` : data.animalType,
-        pet_name: data.catName || "",
-        booking_date: data.date,
-        status: "pending",
-      })
+      .insert(bookingInsertPayload(data))
       .select(COLUMNS)
       .single();
 
@@ -86,7 +88,7 @@ export const lookupBookings = createServerFn({ method: "POST" })
     const { data: rows, error } = await supabaseAdmin
       .from("bookings")
       .select(COLUMNS)
-      .eq("phone_number", data.phone)
+      .eq("phone", data.phone)
       .order("booking_date", { ascending: false });
 
     if (error) {
