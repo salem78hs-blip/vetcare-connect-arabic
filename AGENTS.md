@@ -11,8 +11,6 @@
 
 ## Rules
 
-- Booking validation and direct WhatsApp message formatting share the browser-safe bookings module, so client and server accept the same inputs and messages use the saved condition notes.
-
 - Product image writes use passcode-checked server uploads to the products storage bucket; never allow anonymous storage writes. Save them through the existing product form.
 - The products storage bucket is private (public buckets are blocked in this workspace); serve product images through the `/api/public/product-image/$` route and store that app URL in `image_url`, never a direct storage URL.
 

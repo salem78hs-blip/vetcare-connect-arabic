@@ -1,14 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import type { Booking, BookingInput, VaccinationPlan } from "@/lib/bookings";
-import { DEFAULT_INTERVAL_MONTHS, addMonths, normalizePhone, bookingInputSchema } from "@/lib/bookings";
+import { DEFAULT_INTERVAL_MONTHS, addMonths, normalizePhone } from "@/lib/bookings";
 
 type Row = {
   id: string;
   owner_name: string;
   phone: string;
   service_type: string;
-  service_description: string;
   animal_type: string;
   animal_other: string | null;
   pet_name: string | null;
@@ -24,7 +23,6 @@ function toBooking(row: Row): Booking {
     ownerName: row.owner_name,
     phone: row.phone,
     serviceType: row.service_type as Booking["serviceType"],
-    serviceDescription: row.service_description,
     animalType: row.animal_type,
     animalOther: row.animal_other ?? "",
     catName: row.pet_name ?? "",
@@ -35,7 +33,7 @@ function toBooking(row: Row): Booking {
 }
 
 const COLUMNS =
-  "id, owner_name, phone, service_type, service_description, animal_type, animal_other, pet_name, booking_date, vaccination_plan, created_at";
+  "id, owner_name, phone, service_type, animal_type, animal_other, pet_name, booking_date, vaccination_plan, created_at";
 
 function isMissingBookingsSchema(error: { code?: string; message?: string } | null) {
   return (
@@ -49,9 +47,30 @@ function isMissingBookingsSchema(error: { code?: string; message?: string } | nu
 
 export const createBooking = createServerFn({ method: "POST" })
   .inputValidator((input: BookingInput) => {
-    const result = bookingInputSchema.safeParse(input);
-    if (!result.success) throw new Error(result.error.issues[0]?.message ?? "تحقق من بيانات الحجز");
-    return result.data;
+    const ownerName = String(input?.ownerName ?? "").trim();
+    const phone = normalizePhone(String(input?.phone ?? ""));
+    const serviceType = String(input?.serviceType ?? "").trim();
+    const animalType = String(input?.animalType ?? "").trim();
+    const animalOther = String(input?.animalOther ?? "").trim();
+    const catName = String(input?.catName ?? "").trim();
+    const date = String(input?.date ?? "").trim();
+
+    if (ownerName.length < 2) throw new Error("اكتب اسم المالك");
+    if (!["medical_checkup", "grooming_bathing"].includes(serviceType)) throw new Error("اختر نوع الخدمة");
+    if (!/^07\d{9}$/.test(phone)) throw new Error("رقم الهاتف يجب أن يكون 11 رقماً ويبدأ بـ 07");
+    if (!["cat", "dog", "bird", "other"].includes(animalType)) throw new Error("اختر نوع الحيوان");
+    if (animalType === "other" && animalOther.length < 2) throw new Error("اكتب نوع الحيوان");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error("اختر تاريخ الموعد");
+
+    return {
+      ownerName: ownerName.slice(0, 60),
+      phone,
+      serviceType: serviceType as BookingInput["serviceType"],
+      animalType,
+      animalOther: animalType === "other" ? animalOther.slice(0, 40) : "",
+      catName: catName.slice(0, 40),
+      date,
+    };
   })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -61,7 +80,6 @@ export const createBooking = createServerFn({ method: "POST" })
         owner_name: data.ownerName,
         phone: data.phone,
         service_type: data.serviceType,
-        service_description: data.serviceDescription,
         animal_type: data.animalType,
         animal_other: data.animalOther || null,
         pet_name: data.catName || null,

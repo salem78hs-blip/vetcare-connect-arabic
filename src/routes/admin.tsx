@@ -238,12 +238,6 @@ function AdminDashboard({ passcode }: { passcode: string }) {
   <div><span className="text-muted-foreground">نوع الخدمة</span><p className="font-semibold">{serviceTypeLabel(booking.serviceType)}</p></div>
   <div><span className="text-muted-foreground">أُنشئ في</span><p className="font-semibold">{formatDate(booking.createdAt)}</p></div>
   </div>
-  {booking.serviceDescription && (
-    <div className="mt-3 text-sm">
-      <span className="text-muted-foreground">وصف الحالة / ملاحظات إضافية</span>
-      <p className="mt-1 whitespace-pre-wrap break-words">{booking.serviceDescription}</p>
-    </div>
-  )}
   <div className="mt-3 flex justify-end">
   <Button
   variant="ghost"
