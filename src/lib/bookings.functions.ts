@@ -1,26 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import type { Booking, BookingInput, VaccinationPlan } from "@/lib/bookings";
-import {
-  DEFAULT_INTERVAL_MONTHS,
-  addMonths,
-  bookingInsertPayload,
-  bookingInputSchema,
-  normalizePhone,
-} from "@/lib/bookings";
+import { DEFAULT_INTERVAL_MONTHS, addMonths, normalizePhone, bookingInputSchema } from "@/lib/bookings";
 
 type Row = {
   id: string;
   owner_name: string;
   phone: string;
+  service_type: string;
+  service_description: string;
   animal_type: string;
   animal_other: string | null;
   pet_name: string | null;
   booking_date: string;
-  service_type: string;
-  service_description: string;
+  vaccination_plan: unknown;
   created_at: string;
-  vaccination_plan?: unknown;
 };
 
 function toBooking(row: Row): Booking {
@@ -29,10 +23,7 @@ function toBooking(row: Row): Booking {
     id: row.id,
     ownerName: row.owner_name,
     phone: row.phone,
-    serviceType:
-      row.service_type === "medical_checkup" || row.service_type === "grooming_bathing"
-        ? row.service_type
-        : "",
+    serviceType: row.service_type as Booking["serviceType"],
     serviceDescription: row.service_description,
     animalType: row.animal_type,
     animalOther: row.animal_other ?? "",
@@ -44,7 +35,7 @@ function toBooking(row: Row): Booking {
 }
 
 const COLUMNS =
-  "id, owner_name, phone, animal_type, animal_other, pet_name, booking_date, service_type, service_description, created_at, vaccination_plan";
+  "id, owner_name, phone, service_type, service_description, animal_type, animal_other, pet_name, booking_date, vaccination_plan, created_at";
 
 function isMissingBookingsSchema(error: { code?: string; message?: string } | null) {
   return (
@@ -66,14 +57,20 @@ export const createBooking = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await supabaseAdmin
       .from("bookings")
-      .insert(bookingInsertPayload(data))
+      .insert({
+        owner_name: data.ownerName,
+        phone: data.phone,
+        service_type: data.serviceType,
+        service_description: data.serviceDescription,
+        animal_type: data.animalType,
+        animal_other: data.animalOther || null,
+        pet_name: data.catName || null,
+        booking_date: data.date,
+      })
       .select(COLUMNS)
       .single();
 
-    if (error) {
-      console.error("SUPABASE INSERT FAILED DETAILED:", error);
-      throw new Error(`${error.message} (Code: ${error.code ?? "unknown"})`);
-    }
+    if (error) throw new Error("تعذّر حفظ الحجز، حاول مرة أخرى");
     return toBooking(row as Row);
   });
 
@@ -169,7 +166,7 @@ export const savePlan = createServerFn({ method: "POST" })
       .update({ vaccination_plan: data.plan })
       .eq("id", data.id);
 
-    if (error) throw new Error("تعذّر حفظ ��طة التطعيم");
+    if (error) throw new Error("تعذّر حفظ خطة التطعيم");
     return { ok: true };
   });
 

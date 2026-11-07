@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import {
   CalendarCheck,
   Check,
@@ -7,6 +8,7 @@ import {
   Facebook,
   HeartPulse,
   Instagram,
+  Loader2,
   MapPin,
   Music2,
   Phone,
@@ -15,11 +17,15 @@ import {
   ShoppingBag,
   Stethoscope,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/bookings";
-import { BookingForm, type BookingFormValues } from "@/components/BookingForm";
-import { CLINIC, animalLabel } from "@/lib/clinic";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { createBooking } from "@/lib/bookings.functions";
+import { bookingInputSchema, bookingWhatsappUrl, formatDate } from "@/lib/bookings";
+import { ANIMAL_TYPES, CLINIC, animalLabel } from "@/lib/clinic";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -39,8 +45,47 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
+const empty = {
+  ownerName: "",
+  phone: "",
+  serviceType: "",
+  serviceDescription: "",
+  animalType: "cat",
+  animalOther: "",
+  petName: "",
+  date: "",
+};
+
 function HomePage() {
-  const [done, setDone] = useState<BookingFormValues | null>(null);
+  const save = useServerFn(createBooking);
+  const [form, setForm] = useState(empty);
+  const [done, setDone] = useState<typeof empty | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  function set(key: keyof typeof empty, value: string) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const result = bookingInputSchema.safeParse({ ...form, catName: form.petName });
+    if (!result.success) {
+      toast.error(result.error.issues[0]?.message ?? "تحقق من بيانات الحجز");
+      return;
+    }
+
+    setSaving(true);
+    const snapshot = form;
+    try {
+      const booking = await save({ data: result.data });
+      setDone(snapshot);
+      window.location.assign(bookingWhatsappUrl({ ...result.data, serviceDescription: booking.serviceDescription }));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذّر حفظ الحجز، حاول مرة أخرى");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -122,7 +167,7 @@ function HomePage() {
 
         <section className="mt-8 grid gap-3 sm:grid-cols-3">
           {[
-            { icon: Stethoscope, title: "فحص سريري", text: "تشخيص دقيق ومتابعة حالة ح��وانك" },
+            { icon: Stethoscope, title: "فحص سريري", text: "تشخيص دقيق ومتابعة حالة حيوانك" },
             { icon: HeartPulse, title: "رعاية ومتابعة", text: "إرشادات تغذية وعناية بعد الزيارة" },
           ].map((f) => (
             <div
@@ -154,7 +199,120 @@ function HomePage() {
               </Button>
             </div>
           ) : (
-            <BookingForm onSaved={setDone} />
+            <form onSubmit={submit} className="space-y-5">
+              <h2 className="text-lg font-bold">احجز موعداً</h2>
+
+              <div className="space-y-2">
+                <Label htmlFor="ownerName">اسم المالك</Label>
+                <Input
+                  id="ownerName"
+                  value={form.ownerName}
+                  maxLength={60}
+                  onChange={(e) => set("ownerName", e.target.value)}
+                  className="rounded-2xl"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">رقم الهاتف</Label>
+                <Input
+                  id="phone"
+                  inputMode="tel"
+                  placeholder="07XXXXXXXXX"
+                  value={form.phone}
+                  maxLength={11}
+                  onChange={(e) => set("phone", e.target.value.replace(/\D/g, ""))}
+                  className="rounded-2xl"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="serviceDescription" className="flex-wrap leading-relaxed">
+                  وصف الحالة <span className="text-muted-foreground">(فحص طبي، تحميم، أخرى)</span>
+                </Label>
+                <Textarea
+                  id="serviceDescription"
+                  required
+                  value={form.serviceDescription}
+                  onChange={(e) => set("serviceDescription", e.target.value)}
+                  maxLength={1000}
+                  rows={4}
+                  className="min-h-28 resize-y rounded-2xl"
+                />
+              </div>
+
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-medium">نوع الحيوان</legend>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {ANIMAL_TYPES.map((t) => (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => set("animalType", t.value)}
+                      aria-pressed={form.animalType === t.value}
+                      className={`min-h-11 rounded-2xl border px-3 text-sm font-semibold transition-colors ${
+                        form.animalType === t.value
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-input bg-card text-foreground hover:bg-accent"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+                {form.animalType === "other" && (
+                  <div className="space-y-2 pt-1">
+                    <Label htmlFor="animalOther">اكتب نوع الحيوان</Label>
+                    <Input
+                      id="animalOther"
+                      autoFocus
+                      placeholder="مثال: أرنب، سلحفاة، هامستر…"
+                      value={form.animalOther}
+                      maxLength={40}
+                      onChange={(e) => set("animalOther", e.target.value)}
+                      className="rounded-2xl"
+                    />
+                  </div>
+                )}
+              </fieldset>
+
+
+              <div className="space-y-2">
+                <Label htmlFor="petName">
+                  اسم الحيوان <span className="text-muted-foreground">(اختياري)</span>
+                </Label>
+                <Input
+                  id="petName"
+                  value={form.petName}
+                  maxLength={40}
+                  onChange={(e) => set("petName", e.target.value)}
+                  className="rounded-2xl"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="date">تاريخ الموعد</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={form.date}
+                  onChange={(e) => set("date", e.target.value)}
+                  className="rounded-2xl"
+                />
+              </div>
+
+              <Button type="submit" size="lg" disabled={saving} className="w-full rounded-2xl">
+                {saving ? (
+                  <>
+                    <Loader2 className="size-5 animate-spin" /> جارٍ التسجيل…
+                  </>
+                ) : (
+                  <>
+                    <CalendarCheck className="size-5" /> تأكيد الحجز
+                  </>
+                )}
+              </Button>
+            </form>
           )}
         </section>
 
