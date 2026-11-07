@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Lock, PackageOpen, Pencil, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { Loader2, Lock, PackageOpen, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -17,31 +24,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  adminListProducts,
-  listCategories,
-  deleteOrder,
-  deleteProduct,
-  listOrders,
-  saveProduct,
-  updateOrderStatus,
-} from "@/lib/store.functions";
-import {
-  ORDER_STATUSES,
-  formatPrice,
-  orderStatusLabel,
-  type Category,
-  type Order,
-  type Product,
-} from "@/lib/store";
-import { CategoriesManager } from "@/components/admin-extra-tabs";
+import { adminListProducts, deleteProduct, saveProduct } from "@/lib/store.functions";
+import { formatPrice, type Product } from "@/lib/store";
 import { uploadProductImage } from "@/lib/product-image.functions";
 import { validateProductImage } from "@/lib/product-image";
 
@@ -51,11 +35,11 @@ export const Route = createFileRoute("/admin")({
       { title: "لوحة الإدارة | VetOna" },
       {
         name: "description",
-        content: "إدارة حجوزات عيادة VetOna، منتجات المتجر وطلبات العملاء.",
+        content: "إدارة منتجات متجر VetOna.",
       },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "لوحة الإدارة | VetOna" },
-      { property: "og:description", content: "متابعة الحجوزات والمنتجات والطلبات." },
+      { property: "og:description", content: "إدارة منتجات متجر VetOna." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -114,25 +98,9 @@ function PasscodeGate({ onUnlock }: { onUnlock: (code: string) => void }) {
 
 function AdminDashboard({ passcode }: { passcode: string }) {
   const fetchProducts = useServerFn(adminListProducts);
-  const fetchCategories = useServerFn(listCategories);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const reloadCategories = useCallback(async () => {
-    try {
-      setCategories(await fetchCategories());
-    } catch {
-      toast.error("تعذّر جلب الأقسام");
-    }
-  }, [fetchCategories]);
-  useEffect(() => {
-    void reloadCategories();
-  }, [reloadCategories]);
-  const fetchOrders = useServerFn(listOrders);
   const removeProduct = useServerFn(deleteProduct);
-  const removeOrder = useServerFn(deleteOrder);
-  const setStatus = useServerFn(updateOrderStatus);
 
   const [products, setProducts] = useState<Product[] | null>(null);
-  const [orders, setOrders] = useState<Order[] | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | "new" | null>(null);
 
   const reloadProducts = useCallback(async () => {
@@ -144,19 +112,9 @@ function AdminDashboard({ passcode }: { passcode: string }) {
     }
   }, [fetchProducts, passcode]);
 
-  const reloadOrders = useCallback(async () => {
-    try {
-      setOrders(await fetchOrders({ data: { passcode } }));
-    } catch {
-      setOrders([]);
-      toast.error("تعذّر جلب الطلبات");
-    }
-  }, [fetchOrders, passcode]);
-
   useEffect(() => {
     void reloadProducts();
-    void reloadOrders();
-  }, [reloadProducts, reloadOrders]);
+  }, [reloadProducts]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -188,14 +146,6 @@ function AdminDashboard({ passcode }: { passcode: string }) {
 
           <TabsContent value="store" className="mt-5">
             {/* ---------- products ---------- */}
-            <CategoriesManager
-              passcode={passcode}
-              categories={categories}
-              onChanged={() => {
-                void reloadCategories();
-                void reloadProducts();
-              }}
-            />
             <h2 className="mb-4 text-lg font-extrabold">منتجات المتجر</h2>
             <div className="mb-4 flex justify-end">
               <Button className="rounded-2xl" onClick={() => setEditingProduct("new")}>
@@ -270,92 +220,6 @@ function AdminDashboard({ passcode }: { passcode: string }) {
                 ))}
               </div>
             )}
-
-            {/* ---------- orders ---------- */}
-            <section className="mt-10">
-              <h2 className="mb-4 text-lg font-extrabold">طلبات المتجر</h2>
-              {orders === null ? (
-                <SkeletonList />
-              ) : orders.length === 0 ? (
-                <EmptyState
-                  icon={<ShoppingBag className="size-7" />}
-                  title="لا توجد طلبات"
-                  text="ستظهر طلبات المنتجات هنا بعد أن يرسلها العملاء من صفحة المتجر."
-                />
-              ) : (
-                <div className="grid gap-3">
-                  {orders.map((o) => (
-                    <div key={o.id} className="card-soft p-5">
-                      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-bold">{o.productName}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {o.customerName} —{" "}
-                            <a
-                              href={`tel:${o.phone}`}
-                              dir="ltr"
-                              className="font-semibold text-primary"
-                            >
-                              {o.phone}
-                            </a>
-                          </p>
-                        </div>
-                        <span className="shrink-0 rounded-full bg-secondary px-3 py-1 text-[11px] font-bold text-secondary-foreground">
-                          {orderStatusLabel(o.status)}
-                        </span>
-                      </div>
-                      <dl className="mt-4 grid gap-1.5 text-xs sm:grid-cols-3">
-                        <Row label="الكمية" value={String(o.quantity)} />
-                        <Row label="الإجمالي" value={formatPrice(o.unitPrice * o.quantity)} />
-                        <Row label="ملاحظة" value={o.note || "—"} />
-                      </dl>
-                      <div className="mt-4 flex flex-wrap items-center gap-2">
-                        <Select
-                          value={o.status}
-                          onValueChange={async (value) => {
-                            try {
-                              await setStatus({ data: { passcode, id: o.id, status: value } });
-                              toast.success("تم تحديث الحالة");
-                              void reloadOrders();
-                            } catch (error) {
-                              toast.error(error instanceof Error ? error.message : "تعذّر التحديث");
-                            }
-                          }}
-                        >
-                          <SelectTrigger className="w-40 rounded-2xl">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {ORDER_STATUSES.map((s) => (
-                              <SelectItem key={s.value} value={s.value}>
-                                {s.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          aria-label="حذف الطلب"
-                          className="min-h-11 min-w-11 rounded-2xl text-destructive"
-                          onClick={async () => {
-                            try {
-                              await removeOrder({ data: { passcode, id: o.id } });
-                              toast.success("تم حذف الطلب");
-                              void reloadOrders();
-                            } catch (error) {
-                              toast.error(error instanceof Error ? error.message : "تعذّر الحذف");
-                            }
-                          }}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
           </TabsContent>
         </Tabs>
       </main>
@@ -365,17 +229,8 @@ function AdminDashboard({ passcode }: { passcode: string }) {
         product={editingProduct}
         onClose={() => setEditingProduct(null)}
         onSaved={reloadProducts}
-        categories={categories}
+        categories={[]}
       />
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex gap-2">
-      <dt className="shrink-0 text-muted-foreground">{label}:</dt>
-      <dd className="min-w-0 truncate font-semibold">{value}</dd>
     </div>
   );
 }
