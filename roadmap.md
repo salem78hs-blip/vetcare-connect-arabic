@@ -34,3 +34,8 @@
 - [x] Insert with the real columns (owner_name, phone, animal_type, animal_other, pet_name, booking_date, service_type, service_description) from one shared helper used by the public form and the server function; drop client_name/phone_number/pet_type/status.
 - [x] Redirect to WhatsApp immediately after a successful insert.
 - [x] Verify: insert returns 201 and the row reads back with the correct values; WhatsApp opens on 07760198800 with the condition text; admin and tracking screens read the renamed columns.
+
+## Booking deployment follow-up
+
+- [x] Put the public booking form in BookingForm.tsx with owner_name, phone and animal_type inserts, without server credential checks.
+- [x] Verify required fields, successful insert, WhatsApp navigation, staff readback and current build diagnostics (build OK; eight tests pass; test bookings deleted).
