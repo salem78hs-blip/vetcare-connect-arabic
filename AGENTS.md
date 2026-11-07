@@ -25,3 +25,5 @@
   lowercase path `"/logo.png"`; never import it through a bundled asset module,
   because the deployed host is case-sensitive and a mismatched path breaks the
   header image.
+
+- Keep public booking submission in `src/components/BookingForm.tsx` using the generated browser client and shared payload helper; never depend on server credentials in the form. This preserves anonymous validated inserts and direct WhatsApp redirection.
