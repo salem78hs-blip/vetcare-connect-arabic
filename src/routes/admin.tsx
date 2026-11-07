@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CategoriesManager } from "@/components/admin-extra-tabs";
 import {
   Dialog,
   DialogContent,
@@ -24,8 +25,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { adminListProducts, deleteProduct, saveProduct } from "@/lib/store.functions";
-import { formatPrice, type Product } from "@/lib/store";
+import {
+  adminListProducts,
+  deleteProduct,
+  listCategories,
+  saveProduct,
+} from "@/lib/store.functions";
+import { formatPrice, type Category, type Product } from "@/lib/store";
 import { uploadProductImage } from "@/lib/product-image.functions";
 import { validateProductImage } from "@/lib/product-image";
 
@@ -98,9 +104,11 @@ function PasscodeGate({ onUnlock }: { onUnlock: (code: string) => void }) {
 
 function AdminDashboard({ passcode }: { passcode: string }) {
   const fetchProducts = useServerFn(adminListProducts);
+  const fetchCategories = useServerFn(listCategories);
   const removeProduct = useServerFn(deleteProduct);
 
   const [products, setProducts] = useState<Product[] | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | "new" | null>(null);
 
   const reloadProducts = useCallback(async () => {
@@ -112,9 +120,19 @@ function AdminDashboard({ passcode }: { passcode: string }) {
     }
   }, [fetchProducts, passcode]);
 
+  const reloadCategories = useCallback(async () => {
+    try {
+      setCategories(await fetchCategories());
+    } catch {
+      setCategories([]);
+      toast.error("تعذّر جلب الأقسام");
+    }
+  }, [fetchCategories]);
+
   useEffect(() => {
     void reloadProducts();
-  }, [reloadProducts]);
+    void reloadCategories();
+  }, [reloadCategories, reloadProducts]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -145,6 +163,12 @@ function AdminDashboard({ passcode }: { passcode: string }) {
           </TabsList>
 
           <TabsContent value="store" className="mt-5">
+            <CategoriesManager
+              passcode={passcode}
+              categories={categories}
+              onChanged={reloadCategories}
+            />
+
             {/* ---------- products ---------- */}
             <h2 className="mb-4 text-lg font-extrabold">منتجات المتجر</h2>
             <div className="mb-4 flex justify-end">
@@ -229,7 +253,7 @@ function AdminDashboard({ passcode }: { passcode: string }) {
         product={editingProduct}
         onClose={() => setEditingProduct(null)}
         onSaved={reloadProducts}
-        categories={[]}
+        categories={categories}
       />
     </div>
   );
