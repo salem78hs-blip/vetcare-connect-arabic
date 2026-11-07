@@ -88,10 +88,10 @@ function HomePage() {
     try {
       const { error } = await supabase.from("bookings").insert([
         {
-          client_name: result.data.ownerName,
-          phone_number: result.data.phone,
+          owner_name: result.data.ownerName,
+          phone: result.data.phone,
           service_description: result.data.serviceDescription,
-          pet_type: result.data.animalType,
+          animal_type: result.data.animalType,
           pet_name: result.data.petName || "",
           booking_date: result.data.date,
         },

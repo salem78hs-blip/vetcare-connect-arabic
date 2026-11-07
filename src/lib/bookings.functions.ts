@@ -5,10 +5,10 @@ import { DEFAULT_INTERVAL_MONTHS, addMonths, normalizePhone, bookingInputSchema 
 
 type Row = {
   id: string;
-  client_name: string;
-  phone_number: string;
+  owner_name: string;
+  phone: string;
   service_description: string;
-  pet_type: string;
+  animal_type: string;
   pet_name: string | null;
   booking_date: string;
   status: string;
@@ -20,11 +20,11 @@ function toBooking(row: Row): Booking {
   const plan = row.vaccination_plan as VaccinationPlan | null;
   return {
     id: row.id,
-    ownerName: row.client_name,
-    phone: row.phone_number,
+    ownerName: row.owner_name,
+    phone: row.phone,
     serviceType: "medical",
     serviceDescription: row.service_description,
-    animalType: row.pet_type,
+    animalType: row.animal_type,
     animalOther: "",
     catName: row.pet_name ?? "",
     date: row.booking_date,
@@ -34,7 +34,7 @@ function toBooking(row: Row): Booking {
 }
 
 const COLUMNS =
-  "id, client_name, phone_number, service_description, pet_type, pet_name, booking_date, status, created_at";
+  "id, owner_name, phone, service_description, animal_type, pet_name, booking_date, status, created_at";
 
 function isMissingBookingsSchema(error: { code?: string; message?: string } | null) {
   return (
@@ -57,10 +57,10 @@ export const createBooking = createServerFn({ method: "POST" })
     const { data: row, error } = await supabaseAdmin
       .from("bookings")
       .insert({
-        client_name: data.ownerName,
-        phone_number: data.phone,
+        owner_name: data.ownerName,
+        phone: data.phone,
         service_description: data.serviceDescription,
-        pet_type: data.animalOther ? `${data.animalType}: ${data.animalOther}` : data.animalType,
+        animal_type: data.animalOther ? `${data.animalType}: ${data.animalOther}` : data.animalType,
         pet_name: data.catName || "",
         booking_date: data.date,
         status: "pending",
@@ -86,7 +86,7 @@ export const lookupBookings = createServerFn({ method: "POST" })
     const { data: rows, error } = await supabaseAdmin
       .from("bookings")
       .select(COLUMNS)
-      .eq("phone_number", data.phone)
+      .eq("phone", data.phone)
       .order("booking_date", { ascending: false });
 
     if (error) {
