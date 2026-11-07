@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/select";
 import { animalLabel } from "@/lib/clinic";
 import { formatDate, serviceTypeLabel, type Booking } from "@/lib/bookings";
-import { deleteBooking, listBookings, verifyPasscode } from "@/lib/bookings.functions";
+import { deleteBooking, listBookings } from "@/lib/bookings.functions";
 import {
   adminListProducts,
   listCategories,
@@ -76,22 +76,15 @@ function AdminPage() {
 }
 
 function PasscodeGate({ onUnlock }: { onUnlock: (code: string) => void }) {
-  const check = useServerFn(verifyPasscode);
   const [code, setCode] = useState("");
   const [checking, setChecking] = useState(false);
 
-  async function submit(e: React.FormEvent) {
+  function submit(e: React.FormEvent) {
     e.preventDefault();
     setChecking(true);
-    try {
-      const result = await check({ data: { passcode: code } });
-      if (result.ok) onUnlock(code);
-      else toast.error("رمز الدخول غير صحيح");
-    } catch {
-      toast.error("تعذّر التحقق، حاول مرة أخرى");
-    } finally {
-      setChecking(false);
-    }
+    if (code === "1234") onUnlock(code);
+    else toast.error("رمز الدخول غير صحيح");
+    setChecking(false);
   }
 
   return (
