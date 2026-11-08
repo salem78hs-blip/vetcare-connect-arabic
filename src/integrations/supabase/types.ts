@@ -24,6 +24,7 @@ export type Database = {
           owner_name: string
           pet_name: string | null
           phone: string
+          service_description: string
           service_type: string
           updated_at: string
           vaccination_plan: Json | null
@@ -37,6 +38,7 @@ export type Database = {
           owner_name: string
           pet_name?: string | null
           phone: string
+          service_description?: string
           service_type?: string
           updated_at?: string
           vaccination_plan?: Json | null
@@ -50,6 +52,7 @@ export type Database = {
           owner_name?: string
           pet_name?: string | null
           phone?: string
+          service_description?: string
           service_type?: string
           updated_at?: string
           vaccination_plan?: Json | null
