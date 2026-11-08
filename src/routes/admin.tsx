@@ -204,13 +204,15 @@ function AdminDashboard({ passcode }: { passcode: string }) {
 
       <main className="mx-auto max-w-6xl px-4 py-6 pb-20">
         <Tabs defaultValue="store">
-  <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl">
+  <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-2xl">
   <TabsTrigger value="store" className="rounded-2xl">
   المتجر
   </TabsTrigger>
+  {/* تبويب الحجوزات مخفي حالياً — الكود محفوظ ويمكن إعادته بإظهار الزر أدناه
   <TabsTrigger value="bookings" className="rounded-2xl">
   الحجوزات
   </TabsTrigger>
+  */}
   </TabsList>
 
   <TabsContent value="bookings" className="mt-5">
